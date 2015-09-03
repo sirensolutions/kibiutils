@@ -1,0 +1,27 @@
+{
+  "name": "kibiutils",
+  "main": "kibiutils.js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/sindicetech/kibiutils",
+  "authors": [
+    "Szymon Danielczyk <danielczyk.szymon@gmail.com>"
+  ],
+  "description": "Small utility lib for kibi project",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "kibi",
+    "utils"
+  ],
+  "license": "Apache-2.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
