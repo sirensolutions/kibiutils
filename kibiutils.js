@@ -11,6 +11,8 @@
     // PRIVATE methods
     //
 
+    var _ = require('lodash');
+
     var _goToElement0 = function (json, path, ind, cb) {
       // the path is created from splitting a string on PATH_SEPARATOR.
       // If that string is empty, then the element in the array
@@ -31,6 +33,25 @@
           throw new Error('Unexpected JSON type: ' + JSON.stringify(json, null, ' '));
         }
       }
+    };
+
+    var slugifyId = function (id) {
+      if (id == null) return;
+
+      var trans = {
+        '/' : '-slash-',
+        '\\?' : '-questionmark-',
+        '\\&' : '-ampersand-',
+        '=' : '-equal-',
+        '#' : '-hash-'
+      };
+      _.each(trans, function (val, key) {
+        var regex = new RegExp(key, 'g');
+        id = id.replace(regex, val);
+      });
+      id = id.replace(/[\s]+/g, '-');
+      id = id.replace(/[\-]+/g, '-');
+      return id;
     };
 
     //
@@ -54,7 +75,9 @@
           var v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
         });
-      }
+      },
+
+      slugifyId: slugifyId
     }
 
   })();
