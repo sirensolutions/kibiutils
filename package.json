@@ -1,14 +1,14 @@
 {
   "name": "kibiutils",
   "version": "1.0.0",
-  "description": "Small utility lib for kibi project",
+  "description": "Small utility lib for the Kibi project",
   "main": "kibiutils.js",
   "scripts": {
     "test": "mocha tests.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sindicetech/kibiutils.git"
+    "url": "https://github.com/sirensolutions/kibiutils.git"
   },
   "keywords": [
     "kibi",
@@ -17,10 +17,11 @@
   "author": "Szymon Danielczyk <danielczyk.szymon@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/sindicetech/kibiutils/issues"
+    "url": "https://github.com/sirensolutions/kibiutils/issues"
   },
-  "homepage": "https://github.com/sindicetech/kibiutils",
+  "homepage": "https://github.com/sirensolutions/kibiutils",
   "devDependencies": {
+    "lodash": "3.10.1",
     "expect.js": "~0.3.1",
     "mocha": "^2.3.0"
   }

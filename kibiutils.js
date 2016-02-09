@@ -33,6 +33,25 @@
       }
     };
 
+    var slugifyId = function (id) {
+      if (id == null) return;
+
+      var trans = {
+        '/' : '-slash-',
+        '\\?' : '-questionmark-',
+        '\\&' : '-ampersand-',
+        '=' : '-equal-',
+        '#' : '-hash-'
+      };
+      for (var key in trans) {
+        var regex = new RegExp(key, 'g');
+        id = id.replace(regex, trans[key]);
+      }
+      id = id.replace(/[\s]+/g, '-');
+      id = id.replace(/[\-]+/g, '-');
+      return id;
+    };
+
     //
     // PUBLIC METHODS
     //
@@ -54,7 +73,9 @@
           var v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
         });
-      }
+      },
+
+      slugifyId: slugifyId
     }
 
   })();

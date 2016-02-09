@@ -1,5 +1,6 @@
-var jsonutil = require('./kibiutils.js');
+var kibiutils = require('./kibiutils.js');
 var expect = require('expect.js');
+var _ = require('lodash');
 
 describe('Json traversing', function () {
   it('goToElement object in array', function () {
@@ -17,7 +18,7 @@ describe('Json traversing', function () {
     var ccc = 0;
     var ddd = 0;
 
-    jsonutil.goToElement(json, [ 'aaa', '0', 'bbb' ], function (nested) {
+    kibiutils.goToElement(json, [ 'aaa', '0', 'bbb' ], function (nested) {
       if (nested === 'ccc') {
         ccc++;
       } else if (nested === 'ddd') {
@@ -27,7 +28,7 @@ describe('Json traversing', function () {
     expect(ccc).to.eql(1);
     expect(ddd).to.eql(0);
 
-    jsonutil.goToElement(json, [ 'aaa', '1', 'bbb' ], function (nested) {
+    kibiutils.goToElement(json, [ 'aaa', '1', 'bbb' ], function (nested) {
       if (nested === 'ccc') {
         ccc++;
       } else if (nested === 'ddd') {
@@ -49,7 +50,7 @@ describe('Json traversing', function () {
         }
       ]
     };
-    jsonutil.goToElement(json, [ 'aaa', '0', 'ccc', 'eee' ], function (nested) {
+    kibiutils.goToElement(json, [ 'aaa', '0', 'ccc', 'eee' ], function (nested) {
       expect(nested).to.eql(42);
     });
   });
@@ -65,7 +66,7 @@ describe('Json traversing', function () {
       }
     };
 
-    jsonutil.goToElement(json, [ 'aaa', 'bbb', '0' ], function (nested) {
+    kibiutils.goToElement(json, [ 'aaa', 'bbb', '0' ], function (nested) {
       expect(nested).to.eql({ ccc: 'ccc' });
     });
   });
@@ -88,7 +89,7 @@ describe('Json traversing', function () {
     var ccc = 0;
     var ddd = 0;
 
-    jsonutil.goToElement(json, [ 'aaa', '1', '0', 'bbb' ], function (nested) {
+    kibiutils.goToElement(json, [ 'aaa', '1', '0', 'bbb' ], function (nested) {
       if (nested === 'ccc') {
         ccc++;
       } else if (nested === 'ddd') {
@@ -98,7 +99,7 @@ describe('Json traversing', function () {
     expect(ccc).to.eql(1);
     expect(ddd).to.eql(0);
 
-    jsonutil.goToElement(json, [ 'aaa', '1', '1', 'bbb' ], function (nested) {
+    kibiutils.goToElement(json, [ 'aaa', '1', '1', 'bbb' ], function (nested) {
       if (nested === 'ccc') {
         ccc++;
       } else if (nested === 'ddd') {
@@ -117,7 +118,7 @@ describe('Error handling', function () {
         aaa: 'bbb'
       };
 
-      expect(jsonutil.goToElement).withArgs(json, [ 'aaa', 'bbb' ]).to.throwException(/unexpected json type/i);
+      expect(kibiutils.goToElement).withArgs(json, [ 'aaa', 'bbb' ]).to.throwException(/unexpected json type/i);
     });
 
     it('bad path 2', function () {
@@ -125,17 +126,49 @@ describe('Error handling', function () {
         aaa: 'bbb'
       };
 
-      expect(jsonutil.goToElement).withArgs(json, [ 'ccc' ]).to.throwException(/no property=\[ccc\]/i);
+      expect(kibiutils.goToElement).withArgs(json, [ 'ccc' ]).to.throwException(/no property=\[ccc\]/i);
     });
   });
 });
 
 describe('uuid generation', function () {
   it('get uuid4', function () {
-    var uuid4 = jsonutil.getUuid4();
+    var uuid4 = kibiutils.getUuid4();
     expect(uuid4).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 });
 
+describe('slugifyId()', function () {
+  var fixtures = [
+    ['test#test', 'test-hash-test'],
+    ['test/test', 'test-slash-test'],
+    ['test?test', 'test-questionmark-test'],
+    ['test=test', 'test-equal-test'],
+    ['test&test', 'test-ampersand-test'],
+    ['test / test', 'test-slash-test'],
+    ['test ? test', 'test-questionmark-test'],
+    ['test = test', 'test-equal-test'],
+    ['test & test', 'test-ampersand-test'],
+    ['test / ^test', 'test-slash-^test'],
+    ['test ?  test', 'test-questionmark-test'],
+    ['test =  test', 'test-equal-test'],
+    ['test &  test', 'test-ampersand-test'],
+    ['test/test/test', 'test-slash-test-slash-test'],
+    ['test?test?test', 'test-questionmark-test-questionmark-test'],
+    ['test&test&test', 'test-ampersand-test-ampersand-test'],
+    ['test=test=test', 'test-equal-test-equal-test']
+  ];
 
+  _.each(fixtures, function (fixture) {
+    var msg = 'should convert ' + fixture[0] + ' to ' + fixture[1];
+    it(msg, function () {
+      var results = kibiutils.slugifyId(fixture[0]);
+      expect(results).to.be(fixture[1]);
+    });
+  });
 
+  it('should do nothing if the id is undefined', function () {
+    expect(kibiutils.slugifyId(undefined)).to.be(undefined);
+  });
+
+});
