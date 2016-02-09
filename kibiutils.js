@@ -11,8 +11,6 @@
     // PRIVATE methods
     //
 
-    var _ = require('lodash');
-
     var _goToElement0 = function (json, path, ind, cb) {
       // the path is created from splitting a string on PATH_SEPARATOR.
       // If that string is empty, then the element in the array
@@ -45,10 +43,10 @@
         '=' : '-equal-',
         '#' : '-hash-'
       };
-      _.each(trans, function (val, key) {
+      for (var key in trans) {
         var regex = new RegExp(key, 'g');
-        id = id.replace(regex, val);
-      });
+        id = id.replace(regex, trans[key]);
+      }
       id = id.replace(/[\s]+/g, '-');
       id = id.replace(/[\-]+/g, '-');
       return id;

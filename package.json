@@ -20,10 +20,8 @@
     "url": "https://github.com/sirensolutions/kibiutils/issues"
   },
   "homepage": "https://github.com/sirensolutions/kibiutils",
-  "dependencies": {
-    "lodash": "3.10.1"
-  },
   "devDependencies": {
+    "lodash": "3.10.1",
     "expect.js": "~0.3.1",
     "mocha": "^2.3.0"
   }
