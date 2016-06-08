@@ -53,6 +53,53 @@
     };
 
     //
+    // Datasource type helpers
+    //
+
+    var DatasourceTypes = {
+      sqlite: 'sqlite',
+      rest: 'rest',
+      postgresql: 'postgresql',
+      mysql: 'mysql',
+      sparql_http: 'sparql_http',
+      sql_jdbc: 'sql_jdbc',
+      sparql_jdbc: 'sparql_jdbc',
+      tinkerpop3: 'tinkerpop3'
+    };
+
+    var isJDBC = function (type) {
+      switch (type) {
+        case DatasourceTypes.sql_jdbc:
+        case DatasourceTypes.sparql_jdbc:
+          return true;
+        default:
+          return false;
+      }
+    };
+
+    var isSPARQL = function (type) {
+      switch (type) {
+        case DatasourceTypes.sparql_http:
+        case DatasourceTypes.sparql_jdbc:
+          return true;
+        default:
+          return false;
+      }
+    };
+
+    var isSQL = function (type) {
+      switch (type) {
+        case DatasourceTypes.mysql:
+        case DatasourceTypes.sqlite:
+        case DatasourceTypes.postgresql:
+        case DatasourceTypes.sql_jdbc:
+          return true;
+        default:
+          return false;
+      }
+    };
+
+    //
     // PUBLIC METHODS
     //
 
@@ -75,7 +122,12 @@
         });
       },
 
-      slugifyId: slugifyId
+      slugifyId: slugifyId,
+
+      isSQL: isSQL,
+      isJDBC: isJDBC,
+      isSPARQL: isSPARQL,
+      DatasourceTypes: DatasourceTypes
     }
 
   })();
