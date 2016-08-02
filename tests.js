@@ -174,42 +174,36 @@ describe('slugifyId()', function () {
 
 describe('doesQueryDependOnEntity()', function () {
   var notDependentQueries = [
-    [
       'select * \n' +
        'from test \n' +
        '-- where name = \'@doc[_source][github_id]@\''
-    ],
-    [
+    ,
       'select * \n' +
        'from test \n' +
-        '/* where name \n' + '= \'@doc[_source][github_id]@\ */'
-    ],
-    [
+        '/* where name \n' + '= \'@doc[_source][github_id]@\' */'
+    ,
       'select * \n' +
        'from test \n' +
        '# where name = \'@doc[_source][github_id]@\''
-    ],
-    [
+    ,
       'select * \n' +
        'from test \n' +
         '/* where name \n' + '= \'@doc[_source] \n ' + '[github_id]@\ */'
-    ]
   ];
 
   var DependentQueries = [
      'select * \n' +
        'from test \n' +
        ' where name = \'@doc[_source][github_id]@\''
-    [
-      'select * \n' +
-       'from test \n' +
-        'where name = \'@doc[_source][github_id]@\''
-    ],
-    [
+    ,
       'select * \n' +
        'from test \n' +
         '- where name = \'@doc[_source][github_id]@\''
-    ]
+    ,
+      'select * \n' +
+       'from test \n' +
+        '/* where name \n' + '= \'@doc[_source][github_id]@\''
+    ,
   ];
 
   it("Should check Queries for commented lines", function () {
@@ -221,27 +215,27 @@ describe('doesQueryDependOnEntity()', function () {
     resultQuery: ""
   };
 
-      query.activationQuery = notDependentQueries[i].toString();
-      query.resultQuery = notDependentQueries[i].toString();
+      query.activationQuery = notDependentQueries[i];
+      query.resultQuery = notDependentQueries[i];
       queries.push(query);
     }
     expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(false);
   });
 
   it("Should check Queries for not commented lines", function () {
-  var queries = [];
-
     for (i = 0; i < DependentQueries.length; i++) {
+  var queries = [];
   var query = {
     activationQuery: "",
     resultQuery: ""
   };
 
-      query.activationQuery = DependentQueries[i].toString();
-      query.resultQuery = DependentQueries[i].toString();
+      query.activationQuery = DependentQueries[i];
+      query.resultQuery = DependentQueries[i];
       queries.push(query);
+      expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(true);
     }
-    expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(true);
+
   });
 
 });

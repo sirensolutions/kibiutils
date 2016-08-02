@@ -16,7 +16,6 @@
       var regex = /@doc\[.+?\]@/;
       var multilineCommentRegex = /\/\*(.|[\r\n])*?\*\//g;
       var singleLineRegex = /(-- |# |\/\/).*/g;
-      var removedComments;
 
       // check for sparql and sql queries
       if ((query.activationQuery && regex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
