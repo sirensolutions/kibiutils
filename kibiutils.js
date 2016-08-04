@@ -1,11 +1,8 @@
-(function() {
+(function () {
 
-  'use strict';
+  function KibiUtils() {}
 
-
-  function KibiUtils () {}
-
-  KibiUtils.prototype = (function(){
+  KibiUtils.prototype = (function () {
 
     //
     // PRIVATE methods
@@ -18,7 +15,8 @@
       var singleLineRegex = /(-- |# |\/\/).*/g;
 
       // check for sparql and sql queries
-      if ((query.activationQuery && entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
+      if ((query.activationQuery &&
+          entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
           (query.resultQuery && entityRegex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, '')))) {
         // requires entityURI
         return true;
@@ -94,9 +92,12 @@
         '=' : '-equal-',
         '#' : '-hash-'
       };
+
       for (var key in trans) {
-        var regex = new RegExp(key, 'g');
-        id = id.replace(regex, trans[key]);
+        if (trans.hasOwnProperty(key)) {
+          var regex = new RegExp(key, 'g');
+          id = id.replace(regex, trans[key]);
+        }
       }
       id = id.replace(/[\s]+/g, '-');
       id = id.replace(/[\-]+/g, '-');
@@ -129,7 +130,6 @@
     };
 
     var isSPARQL = function (type) {
-      console.log(type)
       switch (type) {
         case DatasourceTypes.sparql_http:
         case DatasourceTypes.sparql_jdbc:
@@ -181,9 +181,9 @@
       isSPARQL: isSPARQL,
       DatasourceTypes: DatasourceTypes,
       doesQueryDependOnEntity: doesQueryDependOnEntity
-    }
+    };
 
-  })();
+  }());
 
   // Make it to work in node and browser and AMD style
   if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
@@ -198,4 +198,4 @@
     }
   }
 
-})();
+} ());
