@@ -13,24 +13,23 @@
 
     var _checkSingleQuery = function (query) {
 
-      var regex = /@doc\[.+?\]@/;
+      var entityRegex = /@doc\[.+?\]@/;
       var multilineCommentRegex = /\/\*(.|[\r\n])*?\*\//g;
       var singleLineRegex = /(-- |# |\/\/).*/g;
 
       // check for sparql and sql queries
-      if ((query.activationQuery && regex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
-          (query.resultQuery && regex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, '')))) {
+      if ((query.activationQuery && entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
+          (query.resultQuery && entityRegex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, '')))) {
         // requires entityURI
         return true;
       }
-
       // test for rest queries
       if (query.rest_params || query.rest_headers || query.rest_body || query.rest_path) {
-        if (regex.test(query.rest_body)) {
+        if (entityRegex.test(query.rest_body)) {
           // requires entityURI
           return true;
         }
-        if (regex.test(query.rest_path)) {
+        if (entityRegex.test(query.rest_path)) {
           // requires entityURI
           return true;
         }
@@ -38,14 +37,14 @@
         var i;
         if (query.rest_params) {
           for (i = 0; i < query.rest_params.length; i++) {
-            if (regex.test(query.rest_params[i].value)) {
+            if (entityRegex.test(query.rest_params[i].value)) {
               return true;
             }
           }
         }
         if (query.rest_headers) {
           for (i = 0; i < query.rest_headers.length; i++) {
-            if (regex.test(query.rest_headers[i].value)) {
+            if (entityRegex.test(query.rest_headers[i].value)) {
               return true;
             }
           }
@@ -130,6 +129,7 @@
     };
 
     var isSPARQL = function (type) {
+      console.log(type)
       switch (type) {
         case DatasourceTypes.sparql_http:
         case DatasourceTypes.sparql_jdbc:

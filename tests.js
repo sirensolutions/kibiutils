@@ -2,6 +2,7 @@ var kibiutils = require('./kibiutils.js');
 var expect = require('expect.js');
 var _ = require('lodash');
 
+
 describe('Json traversing', function () {
   it('goToElement object in array', function () {
     var json = {
@@ -175,35 +176,52 @@ describe('slugifyId()', function () {
 describe('doesQueryDependOnEntity()', function () {
   var notDependentQueries = [
       'select * \n' +
-       'from test \n' +
-       '-- where name = \'@doc[_source][github_id]@\''
+      'from test \n' +
+      '-- where name = \'@doc[_source][github_id]@\''
     ,
       'select * \n' +
-       'from test \n' +
-        '/* where name \n' + '= \'@doc[_source][github_id]@\' */'
+      'from test \n' +
+      '/* where name \n' + '= \'@doc[_source][github_id]@\' */'
     ,
       'select * \n' +
-       'from test \n' +
-       '# where name = \'@doc[_source][github_id]@\''
+      'from test \n' +
+      '# where name = \'@doc[_source][github_id]@\''
     ,
       'select * \n' +
-       'from test \n' +
-        '/* where name \n' + '= \'@doc[_source] \n ' + '[github_id]@\ */'
+      'from test \n' +
+      '/* where name \n' + '= \'@doc[_source] \n ' + '[github_id]@\ */'
+    ,
+      'select * \n' +
+      'from test \n' +
+      'where name = 123 # \'@doc[_source][github_id]@\''
+    ,
+      'SELECT * \n' +
+      'FROM dbpedia: \n' +
+      'WHERE { \n' +
+       '?s a \'Person\' # \'@doc[_source][github_id]@\' \n' +
+      '}'
   ];
 
   var DependentQueries = [
-     'select * \n' +
-       'from test \n' +
-       ' where name = \'@doc[_source][github_id]@\''
+      'select * \n' +
+      'from test \n' +
+      ' where name = \'@doc[_source][github_id]@\''
     ,
       'select * \n' +
-       'from test \n' +
-        '- where name = \'@doc[_source][github_id]@\''
+      'from test \n' +
+       '-- where name = \'@doc[_source][github_id]@\' \n' +
+      ' where name = \'@doc[_source][github_id]@\''
     ,
       'select * \n' +
-       'from test \n' +
-        '/* where name \n' + '= \'@doc[_source][github_id]@\''
+      'from test \n' +
+      '/* where name \n' + '= \'@doc[_source][github_id]@\' */ \n' +
+      'where name = \'@doc[_source][github_id]@\''
     ,
+      'SELECT * \n' +
+      'FROM dbpedia: \n' +
+      'WHERE { \n' +
+      '?s a \'@doc[_source][github_id]@\' \n' +
+      '}'
   ];
 
   it("Should check Queries for commented lines", function () {
@@ -215,6 +233,7 @@ describe('doesQueryDependOnEntity()', function () {
     resultQuery: ""
   };
 
+      kibiutils.type = kibiutils.DatasourceTypes.sqlite;
       query.activationQuery = notDependentQueries[i];
       query.resultQuery = notDependentQueries[i];
       queries.push(query);
@@ -230,6 +249,7 @@ describe('doesQueryDependOnEntity()', function () {
     resultQuery: ""
   };
 
+      kibiutils.type = kibiutils.DatasourceTypes.sqlite;
       query.activationQuery = DependentQueries[i];
       query.resultQuery = DependentQueries[i];
       queries.push(query);
