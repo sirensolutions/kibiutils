@@ -1,15 +1,63 @@
-(function() {
+(function () {
 
-  'use strict';
+  function KibiUtils() {}
 
-
-  function KibiUtils () {}
-
-  KibiUtils.prototype = (function(){
+  KibiUtils.prototype = (function () {
 
     //
     // PRIVATE methods
     //
+
+    var _checkSingleQuery = function (query) {
+
+      var entityRegex = /@doc\[.+?\]@/;
+      var multilineCommentRegex = /\/\*(.|[\r\n])*?\*\//g;
+      var singleLineRegex = /(-- |# |\/\/).*/g;
+
+      // check for sparql and sql queries
+      if ((query.activationQuery && entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
+          (query.resultQuery && entityRegex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, '')))) {
+        // requires entityURI
+        return true;
+      }
+      // test for rest queries
+      if (query.rest_params || query.rest_headers || query.rest_body || query.rest_path) {
+        if (entityRegex.test(query.rest_body)) {
+          // requires entityURI
+          return true;
+        }
+        if (entityRegex.test(query.rest_path)) {
+          // requires entityURI
+          return true;
+        }
+
+        var i;
+        if (query.rest_params) {
+          for (i = 0; i < query.rest_params.length; i++) {
+            if (entityRegex.test(query.rest_params[i].value)) {
+              return true;
+            }
+          }
+        }
+        if (query.rest_headers) {
+          for (i = 0; i < query.rest_headers.length; i++) {
+            if (entityRegex.test(query.rest_headers[i].value)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    };
+
+    var doesQueryDependOnEntity = function (queryIds) {
+      for (var i = 0; i < queryIds.length; i++) {
+        if (_checkSingleQuery(queryIds[i])) {
+          return true;
+        }
+      }
+      return false;
+    };
 
     var _goToElement0 = function (json, path, ind, cb) {
       // the path is created from splitting a string on PATH_SEPARATOR.
@@ -43,9 +91,12 @@
         '=' : '-equal-',
         '#' : '-hash-'
       };
+
       for (var key in trans) {
-        var regex = new RegExp(key, 'g');
-        id = id.replace(regex, trans[key]);
+        if (trans.hasOwnProperty(key)) {
+          var regex = new RegExp(key, 'g');
+          id = id.replace(regex, trans[key]);
+        }
       }
       id = id.replace(/[\s]+/g, '-');
       id = id.replace(/[\-]+/g, '-');
@@ -127,10 +178,11 @@
       isSQL: isSQL,
       isJDBC: isJDBC,
       isSPARQL: isSPARQL,
-      DatasourceTypes: DatasourceTypes
-    }
+      DatasourceTypes: DatasourceTypes,
+      doesQueryDependOnEntity: doesQueryDependOnEntity
+    };
 
-  })();
+  }());
 
   // Make it to work in node and browser and AMD style
   if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
@@ -145,4 +197,4 @@
     }
   }
 
-})();
+} ());
