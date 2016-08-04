@@ -170,5 +170,80 @@ describe('slugifyId()', function () {
   it('should do nothing if the id is undefined', function () {
     expect(kibiutils.slugifyId(undefined)).to.be(undefined);
   });
+});
+
+describe('doesQueryDependOnEntity()', function () {
+  var notDependentQueries = [
+    'select * \n' +
+      'from test \n' +
+      '-- where name = \'@doc[_source][github_id]@\'',
+    'select * \n' +
+      'from test \n' +
+      '/* where name \n' + '= \'@doc[_source][github_id]@\' */',
+    'select * \n' +
+      'from test \n' +
+      '# where name = \'@doc[_source][github_id]@\'',
+    'select * \n' +
+      'from test \n' +
+      '/* where name \n' + '= \'@doc[_source] \n ' + '[github_id]@\ */',
+    'select * \n' +
+      'from test \n' +
+      'where name = 123 # \'@doc[_source][github_id]@\'',
+    'SELECT * \n' +
+      'FROM dbpedia: \n' +
+      'WHERE { \n' +
+       '?s a \'Person\' # \'@doc[_source][github_id]@\' \n' +
+      '}'
+  ];
+
+  var DependentQueries = [
+    'select * \n' +
+      'from test \n' +
+      ' where name = \'@doc[_source][github_id]@\'',
+    'select * \n' +
+      'from test \n' +
+       '-- where name = \'@doc[_source][github_id]@\' \n' +
+      ' where name = \'@doc[_source][github_id]@\'',
+    'select * \n' +
+      'from test \n' +
+      '/* where name \n' + '= \'@doc[_source][github_id]@\' */ \n' +
+      'where name = \'@doc[_source][github_id]@\'',
+    'SELECT * \n' +
+      'FROM dbpedia: \n' +
+      'WHERE { \n' +
+      '?s a \'@doc[_source][github_id]@\' \n' +
+      '}'
+  ];
+
+  it('Should check Queries for commented lines', function () {
+    var queries = [];
+
+    for (var i = 0; i < notDependentQueries.length; i++) {
+      var query = {
+        activationQuery: '',
+        resultQuery: ''
+      };
+
+      query.activationQuery = notDependentQueries[i];
+      query.resultQuery = notDependentQueries[i];
+      queries.push(query);
+    }
+    expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(false);
+  });
+
+  it('Should check Queries for not commented lines', function () {
+    for (var i = 0; i < DependentQueries.length; i++) {
+      var queries = [];
+      var query = {
+        activationQuery: '',
+        resultQuery: ''
+      };
+
+      query.activationQuery = DependentQueries[i];
+      query.resultQuery = DependentQueries[i];
+      queries.push(query);
+      expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(true);
+    }
+  });
 
 });
