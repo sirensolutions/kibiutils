@@ -25,7 +25,7 @@ rules:
   guard-for-in: 2
   indent: [ 2, 2, { SwitchCase: 1 } ]
   key-spacing: [ 0, { align: value } ]
-  max-len: [ 2, 140, 2, { ignoreComments: true, ignoreUrls: true } ]
+  max-len: [ 2, 145, 2, { ignoreComments: true, ignoreUrls: true } ]
   new-cap: [ 2, { capIsNewExceptions: [ Private ] } ]
   no-bitwise: 0
   no-caller: 2
