@@ -5,9 +5,14 @@
   "main": "kibiutils.js",
   "scripts": {
     "test": "mocha tests.js",
-    "lint": "eslint kibiutils.js",
-    "precommit": "eslint kibiutils.js"
+    "lint": "eslint *.js",
+    "lintfix": "eslint --fix *.js",
+    "validate": "npm ls"
   },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/sirensolutions/kibiutils.git"
@@ -28,6 +33,7 @@
     "eslint-plugin-mocha": "^4.3.0",
     "expect.js": "~0.3.1",
     "lodash": "3.10.1",
-    "mocha": "^2.3.0"
+    "mocha": "^2.3.0",
+    "precommit-hook": "3.0.0"
   }
 }
