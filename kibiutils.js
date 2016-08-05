@@ -53,9 +53,9 @@
       return false;
     };
 
-    var doesQueryDependOnEntity = function (queryIds) {
-      for (var i = 0; i < queryIds.length; i++) {
-        if (_checkSingleQuery(queryIds[i])) {
+    var doesQueryDependOnEntity = function (queries) {
+      for (var i = 0; i < queries.length; i++) {
+        if (_checkSingleQuery(queries[i])) {
           return true;
         }
       }
