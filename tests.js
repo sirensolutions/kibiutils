@@ -174,48 +174,59 @@ describe('slugifyId()', function () {
 
 describe('doesQueryDependOnEntity()', function () {
   var notDependentQueries = [
-    'select * \n' +
-      'from test \n' +
-      '-- where name = \'@doc[_source][github_id]@\'',
-    'select * \n' +
-      'from test \n' +
-      '/* where name \n' + '= \'@doc[_source][github_id]@\' */',
-    'select * \n' +
-      'from test \n' +
-      '# where name = \'@doc[_source][github_id]@\'',
-    'select * \n' +
-      'from test \n' +
-      '/* where name \n' + '= \'@doc[_source] \n ' + '[github_id]@\ */',
-    'select * \n' +
-      'from test \n' +
-      'where name = 123 # \'@doc[_source][github_id]@\'',
     'SELECT * \n' +
-      'FROM dbpedia: \n' +
-      'WHERE { \n' +
-       '?s a \'Person\' # \'@doc[_source][github_id]@\' \n' +
-      '}'
+    'FROM test \n' +
+    '-- WHERE name = \'@doc[_source][github_id]@\'',
+
+    'SELECT * \n' +
+    'FROM test \n' +
+    '/* WHERE name \n' +
+    '= \'@doc[_source][github_id]@\' */',
+
+    'SELECT * \n' +
+    'FROM test \n' +
+    '# WHERE name = \'@doc[_source][github_id]@\'',
+
+    'SELECT * \n' +
+    'FROM test \n' +
+    '/* WHERE name \n' +
+    '= \'@doc[_source] \n ' +
+    '[github_id]@\ */',
+
+    'SELECT * \n' +
+    'FROM test \n' +
+    'WHERE name = 123 # \'@doc[_source][github_id]@\'',
+
+    'SELECT * \n' +
+    'FROM dbpedia: \n' +
+    'WHERE { \n' +
+    '  ?s a \'Person\' # \'@doc[_source][github_id]@\' \n' +
+    '}'
   ];
 
-  var DependentQueries = [
-    'select * \n' +
-      'from test \n' +
-      ' where name = \'@doc[_source][github_id]@\'',
-    'select * \n' +
-      'from test \n' +
-       '-- where name = \'@doc[_source][github_id]@\' \n' +
-      ' where name = \'@doc[_source][github_id]@\'',
-    'select * \n' +
-      'from test \n' +
-      '/* where name \n' + '= \'@doc[_source][github_id]@\' */ \n' +
-      'where name = \'@doc[_source][github_id]@\'',
+  var dependentQueries = [
     'SELECT * \n' +
-      'FROM dbpedia: \n' +
-      'WHERE { \n' +
-      '?s a \'@doc[_source][github_id]@\' \n' +
-      '}'
+    'FROM test \n' +
+    'WHERE name = \'@doc[_source][github_id]@\'',
+
+    'SELECT * \n' +
+    'FROM test \n' +
+    '-- WHERE name = \'@doc[_source][github_id]@\' \n' +
+    'WHERE name = \'@doc[_source][github_id]@\'',
+
+    'SELECT * \n' +
+    'FROM test \n' +
+    '/* WHERE name \n' + '= \'@doc[_source][github_id]@\' */ \n' +
+    'WHERE name = \'@doc[_source][github_id]@\'',
+
+    'SELECT * \n' +
+    'FROM dbpedia: \n' +
+    'WHERE { \n' +
+    '  ?s a \'@doc[_source][github_id]@\' \n' +
+    '}'
   ];
 
-  it('Should check Queries for commented lines', function () {
+  it('should check queries for commented lines on activationQuery', function () {
     var queries = [];
 
     for (var i = 0; i < notDependentQueries.length; i++) {
@@ -225,24 +236,47 @@ describe('doesQueryDependOnEntity()', function () {
       };
 
       query.activationQuery = notDependentQueries[i];
+      queries.push(query);
+    }
+    expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(false);
+  });
+
+  it('should check queries for not commented lines on activationQuery', function () {
+    for (var i = 0; i < dependentQueries.length; i++) {
+      var query = {
+        activationQuery: '',
+        resultQuery: ''
+      };
+
+      query.activationQuery = dependentQueries[i];
+      expect(kibiutils.doesQueryDependOnEntity([ query ])).to.be(true);
+    }
+  });
+
+  it('should check queries for commented lines on resultQuery', function () {
+    var queries = [];
+
+    for (var i = 0; i < notDependentQueries.length; i++) {
+      var query = {
+        activationQuery: '',
+        resultQuery: ''
+      };
+
       query.resultQuery = notDependentQueries[i];
       queries.push(query);
     }
     expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(false);
   });
 
-  it('Should check Queries for not commented lines', function () {
-    for (var i = 0; i < DependentQueries.length; i++) {
-      var queries = [];
+  it('should check queries for not commented lines on resultQuery', function () {
+    for (var i = 0; i < dependentQueries.length; i++) {
       var query = {
         activationQuery: '',
         resultQuery: ''
       };
 
-      query.activationQuery = DependentQueries[i];
-      query.resultQuery = DependentQueries[i];
-      queries.push(query);
-      expect(kibiutils.doesQueryDependOnEntity(queries)).to.be(true);
+      query.resultQuery = dependentQueries[i];
+      expect(kibiutils.doesQueryDependOnEntity([ query ])).to.be(true);
     }
   });
 

@@ -15,8 +15,11 @@
       var singleLineRegex = /(-- |# |\/\/).*/g;
 
       // check for sparql and sql queries
-      if ((query.activationQuery && entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''))) ||
-          (query.resultQuery && entityRegex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, '')))) {
+      var activationQueryCheck = query.activationQuery &&
+        entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''));
+      var resultQueryCheck = query.resultQuery &&
+        entityRegex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''));
+      if (activationQueryCheck || resultQueryCheck) {
         // requires entityURI
         return true;
       }
