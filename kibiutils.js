@@ -77,37 +77,37 @@
 
       var values = [];
 
-      var getValues = function (child, ind) {
-        if (!child) {
+      var getValues = function (element, pathIndex) {
+        if (!element) {
           return;
         }
 
-        if (ind >= path.length) {
-          if (child) {
-            if (child.constructor === Object) {
+        if (pathIndex >= path.length) {
+          if (element) {
+            if (element.constructor === Object) {
               throw new Error('The value at ' + path.join('.') + ' cannot be an object: ' + JSON.stringify(json, null, ' '));
             }
-            if (child.constructor === Array) {
-              for (var i = 0; i < child.length; i++) {
-                if (child[i]) {
-                  if (child[i].constructor === Object) {
+            if (element.constructor === Array) {
+              for (var i = 0; i < element.length; i++) {
+                if (element[i]) {
+                  if (element[i].constructor === Object) {
                     throw new Error('The value at ' + path.join('.') + ' cannot be an object: ' + JSON.stringify(json, null, ' '));
                   }
-                  values.push(child[i]);
+                  values.push(element[i]);
                 }
               }
             } else {
-              values.push(child);
+              values.push(element);
             }
           }
-        } else if (child.constructor === Object) {
-          if (!child.hasOwnProperty(path[ind])) {
-            throw new Error('No property=[' + path.slice(0, ind + 1).join('.') + '] in ' + JSON.stringify(json, null, ' '));
+        } else if (element.constructor === Object) {
+          if (!element.hasOwnProperty(path[pathIndex])) {
+            throw new Error('No property=[' + path.slice(0, pathIndex + 1).join('.') + '] in ' + JSON.stringify(json, null, ' '));
           }
-          getValues(child[path[ind]], ind + 1);
-        } else if (child.constructor === Array) {
-          for (var childi = 0; childi < child.length; childi++) {
-            getValues(child[childi], ind);
+          getValues(element[path[pathIndex]], pathIndex + 1);
+        } else if (element.constructor === Array) {
+          for (var childi = 0; childi < element.length; childi++) {
+            getValues(element[childi], pathIndex);
           }
         } else {
           throw new Error('Unexpected JSON type in object: ' + JSON.stringify(json, null, ' '));
