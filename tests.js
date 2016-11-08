@@ -4,6 +4,11 @@ var _ = require('lodash');
 
 describe('Json traversing', function () {
   describe('getValuesAtPath', function () {
+    it('non existing path', function () {
+      var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'not', 'in', 'there' ]);
+      expect(values).to.have.length(0);
+    });
+
     it('get value at level one', function () {
       var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'aaa' ]);
       expect(values).to.eql([ 'bbb' ]);

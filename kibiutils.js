@@ -101,10 +101,9 @@
             }
           }
         } else if (element.constructor === Object) {
-          if (!element.hasOwnProperty(path[pathIndex])) {
-            throw new Error('No property=[' + path.slice(0, pathIndex + 1).join('.') + '] in ' + JSON.stringify(json, null, ' '));
+          if (element.hasOwnProperty(path[pathIndex])) {
+            getValues(element[path[pathIndex]], pathIndex + 1);
           }
-          getValues(element[path[pathIndex]], pathIndex + 1);
         } else if (element.constructor === Array) {
           for (var childi = 0; childi < element.length; childi++) {
             getValues(element[childi], pathIndex);
