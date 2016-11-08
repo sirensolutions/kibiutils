@@ -3,79 +3,176 @@ var expect = require('expect.js');
 var _ = require('lodash');
 
 describe('Json traversing', function () {
-  it('goToElement object in array', function () {
-    var json = {
-      aaa: [
-        {
-          bbb: 'ccc'
-        },
-        {
-          bbb: 'ddd'
+  describe('getValuesAtPath', function () {
+    it('non existing path', function () {
+      var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'not', 'in', 'there' ]);
+      expect(values).to.have.length(0);
+    });
+
+    it('non existing path in nested object', function () {
+      var json = {
+        aaa: {
+          bbb: 123
         }
-      ]
-    };
-
-    var ccc = 0;
-    var ddd = 0;
-
-    kibiutils.goToElement(json, [ 'aaa', '0', 'bbb' ], function (nested) {
-      if (nested === 'ccc') {
-        ccc++;
-      } else if (nested === 'ddd') {
-        ddd++;
-      }
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'ccc' ]);
+      expect(values).to.have.length(0);
     });
-    expect(ccc).to.eql(1);
-    expect(ddd).to.eql(0);
 
-    kibiutils.goToElement(json, [ 'aaa', '1', 'bbb' ], function (nested) {
-      if (nested === 'ccc') {
-        ccc++;
-      } else if (nested === 'ddd') {
-        ddd++;
-      }
+    it('get value at level one', function () {
+      var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'aaa' ]);
+      expect(values).to.eql([ 'bbb' ]);
     });
-    expect(ccc).to.eql(1);
-    expect(ddd).to.eql(1);
-  });
 
-
-  it('goToElement object nested in array', function () {
-    var json = {
-      aaa: [
-        {
-          ccc: {
-            eee: 42
-          }
+    it('get nested value', function () {
+      var json = {
+        aaa: {
+          bbb: 123
         }
-      ]
-    };
-    kibiutils.goToElement(json, [ 'aaa', '0', 'ccc', 'eee' ], function (nested) {
-      expect(nested).to.eql(42);
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      expect(values).to.eql([ 123 ]);
     });
-  });
 
-  it('goToElement nested object', function () {
-    var json = {
-      aaa: {
-        bbb: [
+    it('value is an array', function () {
+      var json = {
+        aaa: [ 123, 456 ]
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa' ]);
+      expect(values).to.eql([ 123, 456 ]);
+    });
+
+    it('nested value is an array', function () {
+      var json = {
+        aaa: {
+          bbb: [ 123, 456 ]
+        }
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      expect(values).to.eql([ 123, 456 ]);
+    });
+
+    it('multiple values are reachable via path', function () {
+      var json = {
+        aaa: [
           {
-            ccc: 'ccc'
+            bbb: 123
+          },
+          {
+            bbb: 456
           }
         ]
-      }
-    };
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      expect(values).to.eql([ 123, 456 ]);
+    });
 
-    kibiutils.goToElement(json, [ 'aaa', 'bbb', '0' ], function (nested) {
-      expect(nested).to.eql({ ccc: 'ccc' });
+    it('multiple values with some that are arrays are reachable via path', function () {
+      var json = {
+        aaa: [
+          {
+            bbb: [ 123, 456 ]
+          },
+          {
+            bbb: 789
+          }
+        ]
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      expect(values).to.eql([ 123, 456, 789 ]);
+    });
+
+    it('nested array mix', function () {
+      var json = {
+        aaa: [
+          {
+            bbb: [
+              {
+                ccc: 123
+              },
+              {
+                ccc: 456
+              }
+            ]
+          },
+          {
+            bbb: {
+              ccc: 789
+            }
+          }
+        ]
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb', 'ccc' ]);
+      expect(values).to.eql([ 123, 456, 789 ]);
+    });
+
+    describe('nulls', function () {
+      it('on level 1', function () {
+        var json = {
+          aaa: null
+        };
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa' ])).to.have.length(0);
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ])).to.have.length(0);
+      });
+
+      it('on level 2', function () {
+        var json = {
+          aaa: {
+            bbb: null
+          }
+        };
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ])).to.have.length(0);
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb', 'ccc' ])).to.have.length(0);
+      });
+
+      it('in array', function () {
+        var json = {
+          aaa: [
+            123,
+            null
+          ]
+        };
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa' ])).to.eql([ 123 ]);
+      });
+
+      it('nested in array', function () {
+        var json = {
+          aaa: [
+            {
+              bbb: 123
+            },
+            {
+              bbb: null
+            }
+          ]
+        };
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ])).to.eql([ 123 ]);
+      });
+    });
+
+    describe('dotted field names', function () {
+      it('on level 1', function () {
+        var json = {
+          'aaa.bbb': 123
+        };
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa.bbb' ])).to.eql([ 123 ]);
+      });
+
+      it('nested', function () {
+        var json = {
+          'aaa.bbb': {
+            ccc: 123
+          }
+        };
+        expect(kibiutils.getValuesAtPath(json, [ 'aaa.bbb', 'ccc' ])).to.eql([ 123 ]);
+      });
     });
   });
 
-  it('goToElement nested arrays', function () {
-    var json = {
-      aaa: [
-        'foo',
-        [
+  describe('goToElement', function () {
+    it('object in array', function () {
+      var json = {
+        aaa: [
           {
             bbb: 'ccc'
           },
@@ -83,31 +180,101 @@ describe('Json traversing', function () {
             bbb: 'ddd'
           }
         ]
-      ]
-    };
+      };
 
-    var ccc = 0;
-    var ddd = 0;
+      var ccc = 0;
+      var ddd = 0;
 
-    kibiutils.goToElement(json, [ 'aaa', '1', '0', 'bbb' ], function (nested) {
-      if (nested === 'ccc') {
-        ccc++;
-      } else if (nested === 'ddd') {
-        ddd++;
-      }
+      kibiutils.goToElement(json, [ 'aaa', '0', 'bbb' ], function (nested) {
+        if (nested === 'ccc') {
+          ccc++;
+        } else if (nested === 'ddd') {
+          ddd++;
+        }
+      });
+      expect(ccc).to.eql(1);
+      expect(ddd).to.eql(0);
+
+      kibiutils.goToElement(json, [ 'aaa', '1', 'bbb' ], function (nested) {
+        if (nested === 'ccc') {
+          ccc++;
+        } else if (nested === 'ddd') {
+          ddd++;
+        }
+      });
+      expect(ccc).to.eql(1);
+      expect(ddd).to.eql(1);
     });
-    expect(ccc).to.eql(1);
-    expect(ddd).to.eql(0);
 
-    kibiutils.goToElement(json, [ 'aaa', '1', '1', 'bbb' ], function (nested) {
-      if (nested === 'ccc') {
-        ccc++;
-      } else if (nested === 'ddd') {
-        ddd++;
-      }
+    it('object nested in array', function () {
+      var json = {
+        aaa: [
+          {
+            ccc: {
+              eee: 42
+            }
+          }
+        ]
+      };
+      kibiutils.goToElement(json, [ 'aaa', '0', 'ccc', 'eee' ], function (nested) {
+        expect(nested).to.eql(42);
+      });
     });
-    expect(ccc).to.eql(1);
-    expect(ddd).to.eql(1);
+
+    it('nested object', function () {
+      var json = {
+        aaa: {
+          bbb: [
+            {
+              ccc: 'ccc'
+            }
+          ]
+        }
+      };
+
+      kibiutils.goToElement(json, [ 'aaa', 'bbb', '0' ], function (nested) {
+        expect(nested).to.eql({ ccc: 'ccc' });
+      });
+    });
+
+    it('nested arrays', function () {
+      var json = {
+        aaa: [
+          'foo',
+          [
+            {
+              bbb: 'ccc'
+            },
+            {
+              bbb: 'ddd'
+            }
+          ]
+        ]
+      };
+
+      var ccc = 0;
+      var ddd = 0;
+
+      kibiutils.goToElement(json, [ 'aaa', '1', '0', 'bbb' ], function (nested) {
+        if (nested === 'ccc') {
+          ccc++;
+        } else if (nested === 'ddd') {
+          ddd++;
+        }
+      });
+      expect(ccc).to.eql(1);
+      expect(ddd).to.eql(0);
+
+      kibiutils.goToElement(json, [ 'aaa', '1', '1', 'bbb' ], function (nested) {
+        if (nested === 'ccc') {
+          ccc++;
+        } else if (nested === 'ddd') {
+          ddd++;
+        }
+      });
+      expect(ccc).to.eql(1);
+      expect(ddd).to.eql(1);
+    });
   });
 });
 
@@ -279,5 +446,4 @@ describe('doesQueryDependOnEntity()', function () {
       expect(kibiutils.doesQueryDependOnEntity([ query ])).to.be(true);
     }
   });
-
 });
