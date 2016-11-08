@@ -62,6 +62,62 @@
       return false;
     };
 
+    /**
+     * Returns the values at path. Contrary to _goToElement0 the path does not take care of index in an array,
+     * it will check all values.
+     *
+     * @param json the JSON object
+     * @param path the path as an array
+     * @returns an array with all the values reachable from path
+     */
+    var getValuesAtPath = function (json, path) {
+      if (!path || !path.length) {
+        return [];
+      }
+
+      var values = [];
+
+      var getValues = function (child, ind) {
+        if (!child) {
+          return;
+        }
+
+        if (ind >= path.length) {
+          if (child) {
+            if (child.constructor === Object) {
+              throw new Error('The value at ' + path.join('.') + ' cannot be an object: ' + JSON.stringify(json, null, ' '));
+            }
+            if (child.constructor === Array) {
+              for (var i = 0; i < child.length; i++) {
+                if (child[i]) {
+                  if (child[i].constructor === Object) {
+                    throw new Error('The value at ' + path.join('.') + ' cannot be an object: ' + JSON.stringify(json, null, ' '));
+                  }
+                  values.push(child[i]);
+                }
+              }
+            } else {
+              values.push(child);
+            }
+          }
+        } else if (child.constructor === Object) {
+          if (!child.hasOwnProperty(path[ind])) {
+            throw new Error('No property=[' + path.slice(0, ind + 1).join('.') + '] in ' + JSON.stringify(json, null, ' '));
+          }
+          getValues(child[path[ind]], ind + 1);
+        } else if (child.constructor === Array) {
+          for (var childi = 0; childi < child.length; childi++) {
+            getValues(child[childi], ind);
+          }
+        } else {
+          throw new Error('Unexpected JSON type in object: ' + JSON.stringify(json, null, ' '));
+        }
+      };
+
+      getValues(json, 0);
+      return values;
+    };
+
     var _goToElement0 = function (json, path, ind, cb) {
       // the path is created from splitting a string on PATH_SEPARATOR.
       // If that string is empty, then the element in the array
@@ -182,7 +238,8 @@
       isJDBC: isJDBC,
       isSPARQL: isSPARQL,
       DatasourceTypes: DatasourceTypes,
-      doesQueryDependOnEntity: doesQueryDependOnEntity
+      doesQueryDependOnEntity: doesQueryDependOnEntity,
+      getValuesAtPath: getValuesAtPath
     };
 
   }());
