@@ -9,6 +9,16 @@ describe('Json traversing', function () {
       expect(values).to.have.length(0);
     });
 
+    it('non existing path in nested object', function () {
+      var json = {
+        aaa: {
+          bbb: 123
+        }
+      };
+      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'ccc' ]);
+      expect(values).to.have.length(0);
+    });
+
     it('get value at level one', function () {
       var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'aaa' ]);
       expect(values).to.eql([ 'bbb' ]);
