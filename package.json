@@ -4,9 +4,9 @@
   "description": "Small utility lib for the Kibi project",
   "main": "kibiutils.js",
   "scripts": {
-    "test": "mocha tests.js",
-    "lint": "eslint *.js",
-    "lintfix": "eslint --fix *.js",
+    "test": "mocha --compilers js:babel-core/register,js:babel-polyfill ./**/__tests__/* __tests__/tests.js",
+    "lint": "eslint *.js **/*.js",
+    "lintfix": "eslint --fix *.js **/*.js",
     "validate": "npm ls"
   },
   "pre-commit": [
@@ -26,14 +26,28 @@
   "bugs": {
     "url": "https://github.com/sirensolutions/kibiutils/issues"
   },
+  "babel": {
+    "presets": [
+      "es2015",
+      "es2017"
+    ]
+  },
   "homepage": "https://github.com/sirensolutions/kibiutils",
   "devDependencies": {
+    "@elastic/eslint-config-kibana": "0.2.1",
+    "babel": "^6.23.0",
     "babel-eslint": "^6.1.2",
-    "eslint": "^3.2.2",
-    "eslint-plugin-mocha": "^4.3.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-es2017": "^6.22.0",
+    "babel-register": "^6.24.0",
+    "babel-runtime": "5.8.38",
+    "eslint": "3.11.1",
+    "eslint-plugin-mocha": "4.7.0",
     "expect.js": "~0.3.1",
     "lodash": "3.10.1",
-    "mocha": "^2.3.0",
-    "precommit-hook": "3.0.0"
+    "mocha": "2.5.3",
+    "precommit-hook": "3.0.0",
+    "sinon": "1.17.2"
   }
 }
