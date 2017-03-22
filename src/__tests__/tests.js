@@ -1,6 +1,6 @@
-var kibiutils = require('./kibiutils.js');
-var expect = require('expect.js');
-var _ = require('lodash');
+import kibiutils from '../kibiutils.js';
+import expect from 'expect.js';
+import _ from 'lodash';
 
 describe('Json traversing', function () {
   describe('getValuesAtPath', function () {
