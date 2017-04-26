@@ -1,12 +1,12 @@
  /**
   * Takes a snapshot of an index during functional tests.
   *
-  * @param {cluster} An elasticsearch cluster.
+  * @param {elasticsearch.client} An Elasticsearch client.
   * @param {String} index The index name.
   * @return {Map} having the id's as keys and the hits as values.
   */
-export default async function indexSnapshot(cluster, index) {
-  const response = await cluster.callWithInternalUser('search', {
+export default async function indexSnapshot(client, index) {
+  const response = await client.search({
     index: index,
     size: 100
   });
