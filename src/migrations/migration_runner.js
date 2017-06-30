@@ -48,7 +48,7 @@ export default class MigrationRunner {
       if (has(plugin, 'getMigrations')) {
         for (const Migration of plugin.getMigrations()) {
           const configuration = {
-            index: this._server.config().get('kibana.index'),
+            config: _this._server.config(),
             client: this._server.plugins.elasticsearch.getCluster("admin").getClient(),
             logger: this._logger
           };
