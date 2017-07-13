@@ -21,7 +21,7 @@ describe('migrations', function () {
           if (invalid) throw new Error('invalid');
         }
 
-        get description() {
+        static get description() {
           return description;
         }
 
@@ -74,7 +74,8 @@ describe('migrations', function () {
     };
 
     const logger = {
-      info: () => {}
+      info: (e) => {console.log('INFO', e);},
+      warning: (e) => {console.log('WARN', e);}
     };
 
     describe('upgrade', function () {
@@ -91,7 +92,7 @@ describe('migrations', function () {
 
         const migrations = await runner.getMigrations.returnValues[0];
         expect(migrations.length).to.be(3);
-        const descriptions = migrations.map((migration) => migration.description);
+        const descriptions = migrations.map((migration) => migration.constructor.description);
         expect(descriptions).to.contain('plugin1_1');
         expect(descriptions).to.contain('plugin1_2');
         expect(descriptions).to.contain('plugin3_1');
@@ -118,7 +119,7 @@ describe('migrations', function () {
 
         const migrations = await runner.getMigrations.returnValues[0];
         expect(migrations.length).to.be(3);
-        const descriptions = migrations.map((migration) => migration.description);
+        const descriptions = migrations.map((migration) => migration.constructor.description);
         expect(descriptions).to.contain('plugin1_1');
         expect(descriptions).to.contain('plugin1_2');
         expect(descriptions).to.contain('plugin3_1');

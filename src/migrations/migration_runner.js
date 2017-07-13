@@ -67,11 +67,17 @@ export default class MigrationRunner {
    * @returns The number of objects that can be upgraded.
    */
   async count() {
-    let count = 0;
+    let toUpgrade = 0;
+    let warning = 'The following migrations reported outdated objects:\n';
     for (const migration of this.getMigrations()) {
-      count += await migration.count();
+      const count = await migration.count();
+      toUpgrade += count;
+      warning += `${count} objects - "${migration.constructor.description}"\n`;
     }
-    return count;
+    if (toUpgrade > 0) {
+      this._logger.warning(warning);
+    }
+    return toUpgrade;
   }
 
   /**
@@ -81,17 +87,16 @@ export default class MigrationRunner {
    */
   async upgrade() {
     let upgraded = 0;
+    let info = 'The following migrations reported upgraded objects:\n';
     for (const migration of this.getMigrations()) {
-      this._logger.info(`Processing migration "${migration.constructor.description}"`);
       const count = await migration.upgrade();
       upgraded += count;
-      if (count > 0) {
-        this._logger.info(`Upgraded ${count} objects.`);
-      } else {
-        this._logger.info('No objects upgraded.');
-      }
-      this._logger.info(`Processed migration "${migration.constructor.description}"`);
+      info += `${count} objects - "${migration.constructor.description}"\n`;
     }
+    if (upgraded > 0) {
+      this._logger.info(info);
+    }
+
     return upgraded;
   }
 };
