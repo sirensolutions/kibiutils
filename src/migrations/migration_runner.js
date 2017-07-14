@@ -113,7 +113,7 @@ export default class MigrationRunner {
       totalCount = await this.count(false);
     }
     if (iteration > maxIteration) {
-      this._logger.error('The upgrade procedure could not finish after ' + maxIteration + ' iterations');
+      this._logger.error(`The upgrade procedure could not finish after ${maxIteration} iterations`);
     }
     return upgradedTotal;
   }
