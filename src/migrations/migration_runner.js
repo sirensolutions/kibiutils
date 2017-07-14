@@ -66,7 +66,7 @@ export default class MigrationRunner {
    *
    * @returns The number of objects that can be upgraded.
    */
-  async count() {
+  async count(loggingEnabled = true) {
     let toUpgrade = 0;
     let warning = 'The following migrations reported outdated objects:\n';
     for (const migration of this.getMigrations()) {
@@ -74,7 +74,7 @@ export default class MigrationRunner {
       toUpgrade += count;
       warning += `${count} objects - "${migration.constructor.description}"\n`;
     }
-    if (toUpgrade > 0) {
+    if (toUpgrade > 0 && loggingEnabled) {
       this._logger.warning(warning);
     }
     return toUpgrade;
@@ -86,17 +86,35 @@ export default class MigrationRunner {
    * @returns The number of objects upgraded.
    */
   async upgrade() {
-    let upgraded = 0;
-    let info = 'The following migrations reported upgraded objects:\n';
-    for (const migration of this.getMigrations()) {
-      const count = await migration.upgrade();
-      upgraded += count;
-      info += `${count} objects - "${migration.constructor.description}"\n`;
-    }
-    if (upgraded > 0) {
-      this._logger.info(info);
-    }
+    const migrations = this.getMigrations();
+    const maxIteration = 5;
+    let iteration = 1;
+    let upgradedTotal = 0;
+    let upgradedThisIteration = 0;
+    let totalCount = await this.count(false);
+    let info;
 
-    return upgraded;
+    this._logger.info('The following migrations reported upgraded objects:');
+    while (totalCount !== 0) {
+      info = `Iteration: ${iteration}\n`;
+      upgradedThisIteration = 0;
+      for (const migration of migrations) {
+        const count = await migration.upgrade();
+        upgradedTotal += count;
+        upgradedThisIteration += count;
+        info += `${count} objects - "${migration.constructor.description}"\n`;
+      }
+      if (upgradedThisIteration > 0) {
+        this._logger.info(info);
+      }
+      if (++iteration > maxIteration) {
+        break;
+      }
+      totalCount = await this.count(false);
+    }
+    if (iteration > maxIteration) {
+      this._logger.error('The upgrade procedure could not finish after ' + maxIteration + ' iterations');
+    }
+    return upgradedTotal;
   }
 };
