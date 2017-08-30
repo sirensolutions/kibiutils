@@ -1,4 +1,5 @@
 (function () {
+  require("babel-polyfill");
 
   function KibiUtils() {}
 
@@ -8,16 +9,16 @@
     // PRIVATE methods
     //
 
-    var _checkSingleQuery = function (query) {
+    const _checkSingleQuery = function (query) {
 
-      var entityRegex = /@doc\[.+?\]@/;
-      var multilineCommentRegex = /\/\*(.|[\r\n])*?\*\//g;
-      var singleLineRegex = /(-- |# |\/\/).*/g;
+      const entityRegex = /@doc\[.+?\]@/;
+      const multilineCommentRegex = /\/\*(.|[\r\n])*?\*\//g;
+      const singleLineRegex = /(-- |# |\/\/).*/g;
 
       // check for sparql and sql queries
-      var activationQueryCheck = query.activationQuery &&
+      const activationQueryCheck = query.activationQuery &&
         entityRegex.test(query.activationQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''));
-      var resultQueryCheck = query.resultQuery &&
+      const resultQueryCheck = query.resultQuery &&
         entityRegex.test(query.resultQuery.replace(multilineCommentRegex, '').replace(singleLineRegex, ''));
       if (activationQueryCheck || resultQueryCheck) {
         // requires entityURI
@@ -34,7 +35,7 @@
           return true;
         }
 
-        var i;
+        let i;
         if (query.rest_params) {
           for (i = 0; i < query.rest_params.length; i++) {
             if (entityRegex.test(query.rest_params[i].value)) {
@@ -53,8 +54,8 @@
       return false;
     };
 
-    var doesQueryDependOnEntity = function (queries) {
-      for (var i = 0; i < queries.length; i++) {
+    const doesQueryDependOnEntity = function (queries) {
+      for (let i = 0; i < queries.length; i++) {
         if (_checkSingleQuery(queries[i])) {
           return true;
         }
@@ -70,14 +71,14 @@
      * @param path the path as an array
      * @returns an array with all the values reachable from path
      */
-    var getValuesAtPath = function (json, path) {
+    const getValuesAtPath = function (json, path) {
       if (!path || !path.length) {
         return [];
       }
 
-      var values = [];
+      const values = [];
 
-      var getValues = function (element, pathIndex) {
+      const getValues = function (element, pathIndex) {
         if (!element) {
           return;
         }
@@ -88,7 +89,7 @@
               throw new Error('The value at ' + path.join('.') + ' cannot be an object: ' + JSON.stringify(json, null, ' '));
             }
             if (element.constructor === Array) {
-              for (var i = 0; i < element.length; i++) {
+              for (let i = 0; i < element.length; i++) {
                 if (element[i]) {
                   if (element[i].constructor === Object) {
                     throw new Error('The value at ' + path.join('.') + ' cannot be an object: ' + JSON.stringify(json, null, ' '));
@@ -105,7 +106,7 @@
             getValues(element[path[pathIndex]], pathIndex + 1);
           }
         } else if (element.constructor === Array) {
-          for (var childi = 0; childi < element.length; childi++) {
+          for (let childi = 0; childi < element.length; childi++) {
             getValues(element[childi], pathIndex);
           }
         } else {
@@ -117,7 +118,7 @@
       return values;
     };
 
-    var _goToElement0 = function (json, path, ind, cb) {
+    const _goToElement0 = function (json, path, ind, cb) {
       // the path is created from splitting a string on PATH_SEPARATOR.
       // If that string is empty, then the element in the array
       // is an empty string.
@@ -131,7 +132,7 @@
           }
           _goToElement0(json[path[ind]], path, ind + 1, cb);
         } else if (json.constructor === Array) {
-          var arrayInd = parseInt(path[ind], 10);
+          const arrayInd = parseInt(path[ind], 10);
           _goToElement0(json[arrayInd], path, ind + 1, cb);
         } else {
           throw new Error('Unexpected JSON type: ' + JSON.stringify(json, null, ' '));
@@ -139,10 +140,10 @@
       }
     };
 
-    var slugifyId = function (id) {
+    const slugifyId = function (id) {
       if (id == null) return;
 
-      var trans = {
+      const trans = {
         '/' : '-slash-',
         '\\?' : '-questionmark-',
         '\\&' : '-ampersand-',
@@ -150,9 +151,9 @@
         '#' : '-hash-'
       };
 
-      for (var key in trans) {
+      for (const key in trans) {
         if (trans.hasOwnProperty(key)) {
-          var regex = new RegExp(key, 'g');
+          const regex = new RegExp(key, 'g');
           id = id.replace(regex, trans[key]);
         }
       }
@@ -165,7 +166,7 @@
     // Datasource type helpers
     //
 
-    var DatasourceTypes = {
+    const DatasourceTypes = {
       sqlite: 'sqlite',
       rest: 'rest',
       postgresql: 'postgresql',
@@ -176,7 +177,7 @@
       tinkerpop3: 'tinkerpop3'
     };
 
-    var isJDBC = function (type) {
+    const isJDBC = function (type) {
       switch (type) {
         case DatasourceTypes.sql_jdbc:
         case DatasourceTypes.sparql_jdbc:
@@ -186,7 +187,7 @@
       }
     };
 
-    var isSPARQL = function (type) {
+    const isSPARQL = function (type) {
       switch (type) {
         case DatasourceTypes.sparql_http:
         case DatasourceTypes.sparql_jdbc:
@@ -196,7 +197,7 @@
       }
     };
 
-    var isSQL = function (type) {
+    const isSQL = function (type) {
       switch (type) {
         case DatasourceTypes.mysql:
         case DatasourceTypes.sqlite:
@@ -225,8 +226,8 @@
 
       getUuid4: function () {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-          var r = Math.random() * 16 | 0;
-          var v = c === 'x' ? r : (r & 0x3 | 0x8);
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
           return v.toString(16);
         });
       },

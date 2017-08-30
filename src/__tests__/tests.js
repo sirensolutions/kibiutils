@@ -5,55 +5,55 @@ import _ from 'lodash';
 describe('Json traversing', function () {
   describe('getValuesAtPath', function () {
     it('non existing path', function () {
-      var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'not', 'in', 'there' ]);
+      const values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'not', 'in', 'there' ]);
       expect(values).to.have.length(0);
     });
 
     it('non existing path in nested object', function () {
-      var json = {
+      const json = {
         aaa: {
           bbb: 123
         }
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'ccc' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa', 'ccc' ]);
       expect(values).to.have.length(0);
     });
 
     it('get value at level one', function () {
-      var values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'aaa' ]);
+      const values = kibiutils.getValuesAtPath({ aaa: 'bbb' }, [ 'aaa' ]);
       expect(values).to.eql([ 'bbb' ]);
     });
 
     it('get nested value', function () {
-      var json = {
+      const json = {
         aaa: {
           bbb: 123
         }
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
       expect(values).to.eql([ 123 ]);
     });
 
     it('value is an array', function () {
-      var json = {
+      const json = {
         aaa: [ 123, 456 ]
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa' ]);
       expect(values).to.eql([ 123, 456 ]);
     });
 
     it('nested value is an array', function () {
-      var json = {
+      const json = {
         aaa: {
           bbb: [ 123, 456 ]
         }
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
       expect(values).to.eql([ 123, 456 ]);
     });
 
     it('multiple values are reachable via path', function () {
-      var json = {
+      const json = {
         aaa: [
           {
             bbb: 123
@@ -63,12 +63,12 @@ describe('Json traversing', function () {
           }
         ]
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
       expect(values).to.eql([ 123, 456 ]);
     });
 
     it('multiple values with some that are arrays are reachable via path', function () {
-      var json = {
+      const json = {
         aaa: [
           {
             bbb: [ 123, 456 ]
@@ -78,12 +78,12 @@ describe('Json traversing', function () {
           }
         ]
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb' ]);
       expect(values).to.eql([ 123, 456, 789 ]);
     });
 
     it('nested array mix', function () {
-      var json = {
+      const json = {
         aaa: [
           {
             bbb: [
@@ -102,13 +102,13 @@ describe('Json traversing', function () {
           }
         ]
       };
-      var values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb', 'ccc' ]);
+      const values = kibiutils.getValuesAtPath(json, [ 'aaa', 'bbb', 'ccc' ]);
       expect(values).to.eql([ 123, 456, 789 ]);
     });
 
     describe('nulls', function () {
       it('on level 1', function () {
-        var json = {
+        const json = {
           aaa: null
         };
         expect(kibiutils.getValuesAtPath(json, [ 'aaa' ])).to.have.length(0);
@@ -116,7 +116,7 @@ describe('Json traversing', function () {
       });
 
       it('on level 2', function () {
-        var json = {
+        const json = {
           aaa: {
             bbb: null
           }
@@ -126,7 +126,7 @@ describe('Json traversing', function () {
       });
 
       it('in array', function () {
-        var json = {
+        const json = {
           aaa: [
             123,
             null
@@ -136,7 +136,7 @@ describe('Json traversing', function () {
       });
 
       it('nested in array', function () {
-        var json = {
+        const json = {
           aaa: [
             {
               bbb: 123
@@ -152,14 +152,14 @@ describe('Json traversing', function () {
 
     describe('dotted field names', function () {
       it('on level 1', function () {
-        var json = {
+        const json = {
           'aaa.bbb': 123
         };
         expect(kibiutils.getValuesAtPath(json, [ 'aaa.bbb' ])).to.eql([ 123 ]);
       });
 
       it('nested', function () {
-        var json = {
+        const json = {
           'aaa.bbb': {
             ccc: 123
           }
@@ -171,7 +171,7 @@ describe('Json traversing', function () {
 
   describe('goToElement', function () {
     it('object in array', function () {
-      var json = {
+      const json = {
         aaa: [
           {
             bbb: 'ccc'
@@ -182,8 +182,8 @@ describe('Json traversing', function () {
         ]
       };
 
-      var ccc = 0;
-      var ddd = 0;
+      let ccc = 0;
+      let ddd = 0;
 
       kibiutils.goToElement(json, [ 'aaa', '0', 'bbb' ], function (nested) {
         if (nested === 'ccc') {
@@ -207,7 +207,7 @@ describe('Json traversing', function () {
     });
 
     it('object nested in array', function () {
-      var json = {
+      const json = {
         aaa: [
           {
             ccc: {
@@ -222,7 +222,7 @@ describe('Json traversing', function () {
     });
 
     it('nested object', function () {
-      var json = {
+      const json = {
         aaa: {
           bbb: [
             {
@@ -238,7 +238,7 @@ describe('Json traversing', function () {
     });
 
     it('nested arrays', function () {
-      var json = {
+      const json = {
         aaa: [
           'foo',
           [
@@ -252,8 +252,8 @@ describe('Json traversing', function () {
         ]
       };
 
-      var ccc = 0;
-      var ddd = 0;
+      let ccc = 0;
+      let ddd = 0;
 
       kibiutils.goToElement(json, [ 'aaa', '1', '0', 'bbb' ], function (nested) {
         if (nested === 'ccc') {
@@ -281,7 +281,7 @@ describe('Json traversing', function () {
 describe('Error handling', function () {
   describe('with goToElement', function () {
     it('bad path 1', function () {
-      var json = {
+      const json = {
         aaa: 'bbb'
       };
 
@@ -289,7 +289,7 @@ describe('Error handling', function () {
     });
 
     it('bad path 2', function () {
-      var json = {
+      const json = {
         aaa: 'bbb'
       };
 
@@ -300,13 +300,13 @@ describe('Error handling', function () {
 
 describe('uuid generation', function () {
   it('get uuid4', function () {
-    var uuid4 = kibiutils.getUuid4();
+    const uuid4 = kibiutils.getUuid4();
     expect(uuid4).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 });
 
 describe('slugifyId()', function () {
-  var fixtures = [
+  const fixtures = [
     ['test#test', 'test-hash-test'],
     ['test/test', 'test-slash-test'],
     ['test?test', 'test-questionmark-test'],
@@ -327,9 +327,9 @@ describe('slugifyId()', function () {
   ];
 
   _.each(fixtures, function (fixture) {
-    var msg = 'should convert ' + fixture[0] + ' to ' + fixture[1];
+    const msg = 'should convert ' + fixture[0] + ' to ' + fixture[1];
     it(msg, function () {
-      var results = kibiutils.slugifyId(fixture[0]);
+      const results = kibiutils.slugifyId(fixture[0]);
       expect(results).to.be(fixture[1]);
     });
   });
@@ -340,7 +340,7 @@ describe('slugifyId()', function () {
 });
 
 describe('doesQueryDependOnEntity()', function () {
-  var notDependentQueries = [
+  const notDependentQueries = [
     'SELECT * \n' +
     'FROM test \n' +
     '-- WHERE name = \'@doc[_source][github_id]@\'',
@@ -371,7 +371,7 @@ describe('doesQueryDependOnEntity()', function () {
     '}'
   ];
 
-  var dependentQueries = [
+  const dependentQueries = [
     'SELECT * \n' +
     'FROM test \n' +
     'WHERE name = \'@doc[_source][github_id]@\'',
@@ -394,10 +394,10 @@ describe('doesQueryDependOnEntity()', function () {
   ];
 
   it('should check queries for commented lines on activationQuery', function () {
-    var queries = [];
+    const queries = [];
 
-    for (var i = 0; i < notDependentQueries.length; i++) {
-      var query = {
+    for (let i = 0; i < notDependentQueries.length; i++) {
+      const query = {
         activationQuery: '',
         resultQuery: ''
       };
@@ -409,8 +409,8 @@ describe('doesQueryDependOnEntity()', function () {
   });
 
   it('should check queries for not commented lines on activationQuery', function () {
-    for (var i = 0; i < dependentQueries.length; i++) {
-      var query = {
+    for (let i = 0; i < dependentQueries.length; i++) {
+      const query = {
         activationQuery: '',
         resultQuery: ''
       };
@@ -421,10 +421,10 @@ describe('doesQueryDependOnEntity()', function () {
   });
 
   it('should check queries for commented lines on resultQuery', function () {
-    var queries = [];
+    const queries = [];
 
-    for (var i = 0; i < notDependentQueries.length; i++) {
-      var query = {
+    for (let i = 0; i < notDependentQueries.length; i++) {
+      const query = {
         activationQuery: '',
         resultQuery: ''
       };
@@ -436,8 +436,8 @@ describe('doesQueryDependOnEntity()', function () {
   });
 
   it('should check queries for not commented lines on resultQuery', function () {
-    for (var i = 0; i < dependentQueries.length; i++) {
-      var query = {
+    for (let i = 0; i < dependentQueries.length; i++) {
+      const query = {
         activationQuery: '',
         resultQuery: ''
       };
