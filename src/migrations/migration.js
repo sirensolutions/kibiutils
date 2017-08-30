@@ -1,4 +1,5 @@
 import { has, defaults, merge } from 'lodash';
+require("babel-polyfill");
 
 /**
  * The base class for migrations.

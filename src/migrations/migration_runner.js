@@ -1,4 +1,5 @@
 import { each, has } from 'lodash';
+require("babel-polyfill");
 
 /**
  * A migration runner.

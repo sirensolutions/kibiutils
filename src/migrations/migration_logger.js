@@ -1,3 +1,4 @@
+require("babel-polyfill");
 /**
  * A logger for migrations.
  */
