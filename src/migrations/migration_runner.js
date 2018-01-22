@@ -100,7 +100,7 @@ export default class MigrationRunner {
       info = `Iteration: ${iteration}\n`;
       upgradedThisIteration = 0;
       for (const migration of migrations) {
-        const count = await migration.upgrade();
+        const count = await migration.upgrade(this._server);
         upgradedTotal += count;
         upgradedThisIteration += count;
         info += `${count} objects - "${migration.constructor.description}"\n`;
