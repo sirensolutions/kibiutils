@@ -51,7 +51,8 @@ export default class MigrationRunner {
           const configuration = {
             config: this._server.config(),
             client: this._server.plugins.elasticsearch.getCluster("admin").getClient(),
-            logger: this._logger
+            logger: this._logger,
+            server: this._server
           };
           const migration = new Migration(configuration);
           migrations.push(migration);
@@ -100,7 +101,7 @@ export default class MigrationRunner {
       info = `Iteration: ${iteration}\n`;
       upgradedThisIteration = 0;
       for (const migration of migrations) {
-        const count = await migration.upgrade(this._server);
+        const count = await migration.upgrade();
         upgradedTotal += count;
         upgradedThisIteration += count;
         info += `${count} objects - "${migration.constructor.description}"\n`;
