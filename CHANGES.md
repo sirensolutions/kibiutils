@@ -1,3 +1,6 @@
+1.10.0
+* now migration-runner passes the server object to migrations, via the configuration object
+
 1.8.0
 
 * now migration-runner does multipass upgrade, up to 5 iterations
