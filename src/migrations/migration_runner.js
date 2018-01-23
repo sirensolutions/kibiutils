@@ -51,7 +51,8 @@ export default class MigrationRunner {
           const configuration = {
             config: this._server.config(),
             client: this._server.plugins.elasticsearch.getCluster("admin").getClient(),
-            logger: this._logger
+            logger: this._logger,
+            server: this._server
           };
           const migration = new Migration(configuration);
           migrations.push(migration);
