@@ -56,7 +56,7 @@ export default class MigrationRunner {
             server: this._server
           };
           const migration = new Migration(configuration);
-          if (plugin.name === 'siren_investigate') {
+          if (plugin.status.id.indexOf('investigate_core') !== -1) {
             migrations.push(coreMigrations);
           } else {
             migrations.push(migration);
