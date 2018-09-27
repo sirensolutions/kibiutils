@@ -57,7 +57,7 @@ export default class MigrationRunner {
           };
           const migration = new Migration(configuration);
           if (plugin.status.id.indexOf('investigate_core') !== -1) {
-            migrations.push(coreMigrations);
+            coreMigrations.push(migration);
           } else {
             migrations.push(migration);
           }

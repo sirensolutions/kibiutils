@@ -10,16 +10,19 @@ describe('migrations', function () {
      * Fake migration class factory.
      *
      * @param description The description of the migration.
-     * @param count The number of objects processed by the migration.
+     * @param counts The number of objects reported by the migration for each pass.
+     * @param upgrades The number of objects processed by the migration for each pass.
      * @param invalid If true, the constructor will throw an error.
      * @return a fake migration class.
      */
     function fakeMigrationClass(description, counts, upgrades, invalid) {
-      return class {
+
+      return class Migration {
 
         constructor() {
           this.countCallNo = -1;
           this.upgradeCallNo = -1;
+          this.description = description;
           if (invalid) throw new Error('invalid');
         }
 
@@ -48,6 +51,15 @@ describe('migrations', function () {
     }
 
     //Create a fake server having three plugins with fake migrations.
+    const investigateCorePlugin = {
+      status: {
+        id: 'investigate_core'
+      },
+      getMigrations: () => [
+        fakeMigrationClass('investigate_core_1', [1], [1])
+      ]
+    };
+
     const plugin1 = {
       status: {
         id: 'plugin1'
@@ -150,6 +162,25 @@ describe('migrations', function () {
       }
     };
 
+    const server4 = {
+      config: () => ({
+        get: () => 'index'
+      }),
+      plugins: {
+        elasticsearch: {
+          getCluster() {
+            return {
+              getClient() {
+                return {};
+              }
+            };
+          }
+        },
+        investigate_core: investigateCorePlugin,
+        plugin1: plugin1
+      }
+    };
+
     const logger = {
       info: (e) => console.log('INFO', e),
       warning: (e) => console.log('WARN', e),
@@ -170,6 +201,18 @@ describe('migrations', function () {
       logger.info.restore()
       logger.warning.restore()
       logger.error.restore()
+    });
+
+    describe('getMigrations order', function () {
+      const runner = new MigrationRunner(server4, logger);
+
+      it('migrations from investigate_core should be last', function () {
+        const migrations = runner.getMigrations();
+        expect(migrations.length).to.equal(3);
+        expect(migrations[0].description).to.equal('plugin1_1');
+        expect(migrations[1].description).to.equal('plugin1_2');
+        expect(migrations[2].description).to.equal('investigate_core_1');
+      });
     });
 
     describe('upgrade more than 5 passes', function () {

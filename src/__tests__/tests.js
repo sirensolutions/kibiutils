@@ -1,6 +1,5 @@
 import kibiutils from '../kibiutils.js';
 import expect from 'expect.js';
-import _ from 'lodash';
 
 describe('Json traversing', function () {
   describe('getValuesAtPath', function () {
@@ -326,13 +325,14 @@ describe('slugifyId()', function () {
     ['test=test=test', 'test-equal-test-equal-test']
   ];
 
-  _.each(fixtures, function (fixture) {
+  for (let i = 0; i < fixtures.length; i++) {
+    const fixture = fixtures[i];
     const msg = 'should convert ' + fixture[0] + ' to ' + fixture[1];
     it(msg, function () {
       const results = kibiutils.slugifyId(fixture[0]);
       expect(results).to.be(fixture[1]);
     });
-  });
+  }
 
   it('should do nothing if the id is undefined', function () {
     expect(kibiutils.slugifyId(undefined)).to.be(undefined);
