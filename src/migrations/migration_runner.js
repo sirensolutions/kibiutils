@@ -45,6 +45,7 @@ export default class MigrationRunner {
       return this._migrations;
     }
     const migrations = [];
+    const coreMigrations = [];
     each(this._server.plugins, (plugin) => {
       if (has(plugin, 'getMigrations')) {
         for (const Migration of plugin.getMigrations()) {
@@ -55,11 +56,15 @@ export default class MigrationRunner {
             server: this._server
           };
           const migration = new Migration(configuration);
-          migrations.push(migration);
+          if (plugin.status.id.indexOf('investigate_core') !== -1) {
+            migrations.push(coreMigrations);
+          } else {
+            migrations.push(migration);
+          }
         }
       }
     });
-    this._migrations = migrations;
+    this._migrations = migrations.concat(coreMigrations);
     return this._migrations;
   }
 
