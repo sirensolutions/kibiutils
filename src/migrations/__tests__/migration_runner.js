@@ -49,6 +49,9 @@ describe('migrations', function () {
 
     //Create a fake server having three plugins with fake migrations.
     const plugin1 = {
+      status: {
+        id: 'plugin1'
+      },
       getMigrations: () => [
         fakeMigrationClass('plugin1_1', [2], [2]),
         fakeMigrationClass('plugin1_2', [5], [5])
@@ -56,22 +59,34 @@ describe('migrations', function () {
     };
 
     const plugin2 = {
+      status: {
+        id: 'plugin2'
+      },
       getMigrations: () => []
     };
 
     const plugin3 = {
+      status: {
+        id: 'plugin3'
+      },
       getMigrations: () => [
         fakeMigrationClass('plugin3_1', [3], [3]),
       ]
     };
 
     const plugin3callsNo2 = {
+      status: {
+        id: 'plugin3callsNo2'
+      },
       getMigrations: () => [
         fakeMigrationClass('plugin3_1', [3, 2], [3, 2]),
       ]
     };
 
     const plugin3callsNo6 = {
+      status: {
+        id: 'plugin3callsNo6'
+      },
       getMigrations: () => [
         fakeMigrationClass('plugin3_1', [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]),
       ]
