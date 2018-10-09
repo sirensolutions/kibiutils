@@ -79,7 +79,9 @@ export default class MigrationRunner {
     for (const migration of this.getMigrations()) {
       const count = await migration.count();
       toUpgrade += count;
-      warning += `${count} objects - "${migration.constructor.description}"\n`;
+      if (count > 0) {
+        warning += `${count} objects - "${migration.constructor.description}"\n`;
+      }
     }
     if (toUpgrade > 0 && loggingEnabled) {
       this._logger.warning(warning);
@@ -109,7 +111,9 @@ export default class MigrationRunner {
         const count = await migration.upgrade();
         upgradedTotal += count;
         upgradedThisIteration += count;
-        info += `${count} objects - "${migration.constructor.description}"\n`;
+        if (count > 0) {
+          info += `${count} objects - "${migration.constructor.description}"\n`;
+        }
       }
       if (upgradedThisIteration > 0) {
         this._logger.info(info);

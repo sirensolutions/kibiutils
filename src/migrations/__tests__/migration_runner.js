@@ -35,7 +35,7 @@ describe('migrations', function () {
           if (this.countCallNo >= 0 && this.countCallNo <= counts.length - 1) {
             return counts[this.countCallNo]
           } else {
-            return 0
+            return 0;
           }
         }
 
@@ -44,7 +44,7 @@ describe('migrations', function () {
           if (this.upgradeCallNo >= 0 && this.upgradeCallNo <= upgrades.length - 1) {
             return upgrades[this.upgradeCallNo]
           } else {
-            return 0
+            return 0;
           }
         }
       };
@@ -258,7 +258,7 @@ describe('migrations', function () {
           'Iteration: 1\n2 objects - "plugin1_1"\n5 objects - "plugin1_2"\n3 objects - "plugin3_1"\n'
         );
         expect(infoSpy.getCall(2).args[0]).to.equal(
-          'Iteration: 2\n0 objects - "plugin1_1"\n0 objects - "plugin1_2"\n2 objects - "plugin3_1"\n'
+          'Iteration: 2\n2 objects - "plugin3_1"\n'
         );
       });
 
@@ -300,6 +300,65 @@ describe('migrations', function () {
 
       after(function () {
         runner.getMigrations.restore();
+      });
+
+    });
+
+    describe('do not report zeros', function () {
+      const plugin5 = {
+        status: {
+          id: 'plugin5'
+        },
+        getMigrations: () => [
+          fakeMigrationClass('plugin5_1', [0], [0]),
+          fakeMigrationClass('plugin5_2', [2], [2])
+        ]
+      };
+
+      const server5 = {
+        config: () => ({
+          get: () => 'index'
+        }),
+        plugins: {
+          elasticsearch: {
+            getCluster() {
+              return {
+                getClient() {
+                  return {};
+                }
+              };
+            }
+          },
+          plugin5: plugin5
+        }
+      };
+
+      it('should not report 0 count in count phase', async () => {
+        const runner = new MigrationRunner(server5, logger);
+        const result = await runner.count();
+
+        expect(result).to.be(2);
+
+        sinon.assert.callCount(warningSpy, 1);
+        expect(warningSpy.getCall(0).args[0]).to.equal(
+          'The following migrations reported outdated objects:\n' +
+          '2 objects - "plugin5_2"\n'
+        );
+      });
+
+      it('should not report 0 count in upgrade phase', async () => {
+        const runner = new MigrationRunner(server5, logger);
+        const result = await runner.upgrade();
+
+        expect(result).to.be(2);
+
+        sinon.assert.notCalled(warningSpy);
+        sinon.assert.notCalled(errorSpy);
+        sinon.assert.callCount(infoSpy, 2);
+        expect(infoSpy.getCall(0).args[0]).to.equal('The following migrations reported upgraded objects:');
+        expect(infoSpy.getCall(1).args[0]).to.equal(
+          'Iteration: 1\n2 objects - "plugin5_2"\n'
+        );
       });
 
     });
