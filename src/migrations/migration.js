@@ -1,4 +1,4 @@
-import { has, defaults, merge } from 'lodash';
+import { defaults } from 'lodash';
 require("babel-polyfill");
 
 /**
