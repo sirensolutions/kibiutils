@@ -54,54 +54,37 @@ describe('migrations', function () {
     const investigateCorePlugin = {
       status: {
         id: 'investigate_core'
-      },
-      getMigrations: () => [
-        fakeMigrationClass('investigate_core_1', [1], [1])
-      ]
+      }
     };
 
     const plugin1 = {
       status: {
         id: 'plugin1'
-      },
-      getMigrations: () => [
-        fakeMigrationClass('plugin1_1', [2], [2]),
-        fakeMigrationClass('plugin1_2', [5], [5])
-      ]
+      }
     };
 
     const plugin2 = {
       status: {
         id: 'plugin2'
-      },
-      getMigrations: () => []
+      }
     };
 
     const plugin3 = {
       status: {
         id: 'plugin3'
-      },
-      getMigrations: () => [
-        fakeMigrationClass('plugin3_1', [3], [3]),
-      ]
+      }
     };
 
     const plugin3callsNo2 = {
       status: {
         id: 'plugin3callsNo2'
-      },
-      getMigrations: () => [
-        fakeMigrationClass('plugin3_1', [3, 2], [3, 2]),
-      ]
+      }
     };
 
     const plugin3callsNo6 = {
       status: {
         id: 'plugin3callsNo6'
-      },
-      getMigrations: () => [
-        fakeMigrationClass('plugin3_1', [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]),
-      ]
+      }
     };
 
     const server = {
@@ -121,6 +104,15 @@ describe('migrations', function () {
         plugin1: plugin1,
         plugin2: plugin2,
         plugin3: plugin3
+      }
+    };
+
+    const kbnServer = {
+      migrations: {
+        plugin1: [ fakeMigrationClass('plugin1_1', [2], [2]),
+          fakeMigrationClass('plugin1_2', [5], [5])],
+        plugin2: [],
+        plugin3: [fakeMigrationClass('plugin3_1', [3], [3])]
       }
     };
 
@@ -144,6 +136,17 @@ describe('migrations', function () {
       }
     };
 
+    const kbnServer2 = {
+      migrations: {
+        plugin1: [ fakeMigrationClass('plugin1_1', [2], [2]),
+          fakeMigrationClass('plugin1_2', [5], [5])],
+        plugin2: [],
+        plugin3: [
+          fakeMigrationClass('plugin3_1', [3, 2], [3, 2]),
+        ]
+      }
+    };
+
     const server3 = {
       config: () => ({
         get: () => 'index'
@@ -159,6 +162,12 @@ describe('migrations', function () {
           }
         },
         plugin3: plugin3callsNo6
+      }
+    };
+
+    const kbnServer3 = {
+      migrations: {
+        plugin3: [fakeMigrationClass('plugin3_1', [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1])]
       }
     };
 
@@ -181,6 +190,13 @@ describe('migrations', function () {
       }
     };
 
+    const kbnServer4 = {
+      migrations: {
+        plugin1: [fakeMigrationClass('plugin1_1', [2], [2]), fakeMigrationClass('plugin1_2', [5], [5])],
+        investigate_core: [fakeMigrationClass('investigate_core_1', [1], [1])]
+      }
+    };
+
     const logger = {
       info: (e) => console.log('INFO', e),
       warning: (e) => console.log('WARN', e),
@@ -198,13 +214,13 @@ describe('migrations', function () {
     });
 
     afterEach(function () {
-      logger.info.restore()
-      logger.warning.restore()
-      logger.error.restore()
+      logger.info.restore();
+      logger.warning.restore();
+      logger.error.restore();
     });
 
     describe('getMigrations order', function () {
-      const runner = new MigrationRunner(server4, logger);
+      const runner = new MigrationRunner(server4, logger, kbnServer4);
 
       it('migrations from investigate_core should be last', function () {
         const migrations = runner.getMigrations();
@@ -216,7 +232,7 @@ describe('migrations', function () {
     });
 
     describe('upgrade more than 5 passes', function () {
-      const runner = new MigrationRunner(server3, logger);
+      const runner = new MigrationRunner(server3, logger, kbnServer3);
 
       it('should stop on 5th iteration', async () => {
         // there is one plugin which returns counts more than 5 times
@@ -238,7 +254,7 @@ describe('migrations', function () {
 
 
     describe('upgrade 2 passes', function () {
-      const runner = new MigrationRunner(server2, logger);
+      const runner = new MigrationRunner(server2, logger, kbnServer2);
 
       before(function () {
         sinon.spy(runner, 'getMigrations');
@@ -270,7 +286,7 @@ describe('migrations', function () {
 
 
     describe('upgrade', function () {
-      const runner = new MigrationRunner(server, logger);
+      const runner = new MigrationRunner(server, logger, kbnServer);
 
       before(function () {
         sinon.spy(runner, 'getMigrations');
@@ -308,11 +324,7 @@ describe('migrations', function () {
       const plugin5 = {
         status: {
           id: 'plugin5'
-        },
-        getMigrations: () => [
-          fakeMigrationClass('plugin5_1', [0], [0]),
-          fakeMigrationClass('plugin5_2', [2], [2])
-        ]
+        }
       };
 
       const server5 = {
@@ -333,8 +345,14 @@ describe('migrations', function () {
         }
       };
 
+      const kbnServer = {
+        migrations: {
+          plugin5: [fakeMigrationClass('plugin5_1', [0], [0]), fakeMigrationClass('plugin5_2', [2], [2])]
+        }
+      };
+
       it('should not report 0 count in count phase', async () => {
-        const runner = new MigrationRunner(server5, logger);
+        const runner = new MigrationRunner(server5, logger, kbnServer);
         const result = await runner.count();
 
         expect(result).to.be(2);
@@ -347,7 +365,7 @@ describe('migrations', function () {
       });
 
       it('should not report 0 count in upgrade phase', async () => {
-        const runner = new MigrationRunner(server5, logger);
+        const runner = new MigrationRunner(server5, logger, kbnServer);
         const result = await runner.upgrade();
 
         expect(result).to.be(2);
@@ -364,7 +382,7 @@ describe('migrations', function () {
     });
 
     describe('count', function () {
-      const runner = new MigrationRunner(server, logger);
+      const runner = new MigrationRunner(server, logger, kbnServer);
 
       before(function () {
         sinon.spy(runner, 'getMigrations');
@@ -403,46 +421,38 @@ describe('migrations', function () {
       describe('should', function () {
 
         before(function () {
-          sinon.spy(plugin1, 'getMigrations');
-          sinon.spy(plugin2, 'getMigrations');
-          sinon.spy(plugin3, 'getMigrations');
+          sinon.spy(server.plugins.elasticsearch, 'getCluster');
         });
 
         it('cache migrations', async () => {
-          const runner = new MigrationRunner(server);
+          const runner = new MigrationRunner(server, logger, kbnServer);
           runner.getMigrations();
           runner.getMigrations();
 
-          expect(plugin1.getMigrations.calledOnce).to.be(true);
-          expect(plugin2.getMigrations.calledOnce).to.be(true);
-          expect(plugin3.getMigrations.calledOnce).to.be(true);
+          expect(server.plugins.elasticsearch.getCluster.callCount).to.equal(3);
         });
 
         after(function () {
-          plugin1.getMigrations.restore();
-          plugin2.getMigrations.restore();
-          plugin3.getMigrations.restore();
+          server.plugins.elasticsearch.getCluster.restore();
         });
 
       });
 
       describe('should not', function () {
 
-        before(function () {
-          sinon.stub(plugin2, 'getMigrations', () => [
-            fakeMigrationClass('err', [0], [0], true)
-          ]);
-        });
-
         it('swallow exceptions thrown by migration constructors', function () {
-          const runner = new MigrationRunner(server);
+          const kbnServer = {
+            migrations: {
+              plugin1: [ fakeMigrationClass('plugin1_1', [2], [2]),
+                fakeMigrationClass('plugin1_2', [5], [5])],
+              plugin2: [fakeMigrationClass('err', [0], [0], true)],
+              plugin3: [fakeMigrationClass('plugin3_1', [3], [3])]
+            }
+          };
+
+          const runner = new MigrationRunner(server, logger, kbnServer);
           expect(() => runner.getMigrations()).to.throwError();
         });
-
-        after(function () {
-          plugin2.getMigrations.restore();
-        });
-
       });
 
     });
