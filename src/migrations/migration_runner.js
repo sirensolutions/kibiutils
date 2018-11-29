@@ -11,9 +11,10 @@ export default class MigrationRunner {
    * @param {MigrationLogger} logger A logger instance.
    * @param {KbnServer.server} server A server instance.
    */
-  constructor(server, logger) {
+  constructor(server, logger, kbnServer) {
     this._server = server;
     this._logger = logger;
+    this._kbnServer = kbnServer;
   }
 
   /**
@@ -46,23 +47,21 @@ export default class MigrationRunner {
     }
     const migrations = [];
     const coreMigrations = [];
-    each(this._server.plugins, (plugin) => {
-      if (has(plugin, 'getMigrations')) {
-        for (const Migration of plugin.getMigrations()) {
-          const configuration = {
-            config: this._server.config(),
-            client: this._server.plugins.elasticsearch.getCluster("admin").getClient(),
-            logger: this._logger,
-            server: this._server
-          };
-          const migration = new Migration(configuration);
-          if (plugin.status.id.indexOf('investigate_core') !== -1) {
-            coreMigrations.push(migration);
-          } else {
-            migrations.push(migration);
-          }
+    each(this._kbnServer.migrations, (pluginMigrations, id) => {
+      each(pluginMigrations, Migration => {
+        const configuration = {
+          config: this._server.config(),
+          client: this._server.plugins.elasticsearch.getCluster("admin").getClient(),
+          logger: this._logger,
+          server: this._server
+        };
+        const migration = new Migration(configuration);
+        if (id.indexOf('investigate_core') !== -1) {
+          coreMigrations.push(migration);
+        } else {
+          migrations.push(migration);
         }
-      }
+      });
     });
     this._migrations = migrations.concat(coreMigrations);
     return this._migrations;
