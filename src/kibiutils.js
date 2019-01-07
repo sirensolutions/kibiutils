@@ -173,8 +173,7 @@
       mysql: 'mysql',
       sparql_http: 'sparql_http',
       sql_jdbc: 'sql_jdbc',
-      sparql_jdbc: 'sparql_jdbc',
-      tinkerpop3: 'tinkerpop3'
+      sparql_jdbc: 'sparql_jdbc'
     };
 
     const isJDBC = function (type) {
