@@ -3,4 +3,5 @@ library 'jenkins-lib@add-no-display-test'
 sirenPluginPipeline {
   testCommand = 'npm run test'
   display = false
+  installInvestigate = false`
 }
