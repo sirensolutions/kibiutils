@@ -1,4 +1,4 @@
-library 'jenkins-lib@add-no-display-test'
+#!/usr/bin/env groovy
 
 sirenPluginPipeline {
   testCommand = 'npm run test'
