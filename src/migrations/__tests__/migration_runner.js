@@ -33,7 +33,7 @@ describe('migrations', function () {
         async count() {
           this.countCallNo++;
           if (this.countCallNo >= 0 && this.countCallNo <= counts.length - 1) {
-            return counts[this.countCallNo]
+            return counts[this.countCallNo];
           } else {
             return 0;
           }
@@ -42,7 +42,7 @@ describe('migrations', function () {
         async upgrade() {
           this.upgradeCallNo++;
           if (this.upgradeCallNo >= 0 && this.upgradeCallNo <= upgrades.length - 1) {
-            return upgrades[this.upgradeCallNo]
+            return upgrades[this.upgradeCallNo];
           } else {
             return 0;
           }

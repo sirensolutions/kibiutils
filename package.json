@@ -5,8 +5,8 @@
   "main": "./lib/kibiutils.js",
   "scripts": {
     "test": "mocha --compilers js:babel-core/register,js:babel-polyfill src/__tests__/*.js src/**/__tests__/*.js",
-    "lint": "eslint src/*.js src/**/*.js",
-    "lintfix": "eslint --fix src/*.js src/**/*.js",
+    "lint": "eslint src",
+    "lintfix": "eslint --fix src",
     "validate": "npm ls",
     "babel": "babel --presets es2015,es2017 -d lib/ src/",
     "prepublish": "npm run babel"
@@ -42,8 +42,6 @@
   },
   "homepage": "https://github.com/sirensolutions/kibiutils",
   "devDependencies": {
-    "@elastic/eslint-config-kibana": "0.6.1",
-    "@elastic/eslint-plugin-kibana-custom": "1.0.3",
     "babel-cli": "6.18.0",
     "babel-core": "6.21.0",
     "babel-eslint": "7.2.3",
@@ -60,6 +58,7 @@
     "bluebird": "2.9.34",
     "elasticsearch": "^15.1.1",
     "eslint": "3.11.1",
+    "eslint-config-siren": "sirensolutions/eslint-config",
     "eslint-plugin-babel": "4.1.1",
     "eslint-plugin-import": "2.3.0",
     "eslint-plugin-jest": "20.0.0",
