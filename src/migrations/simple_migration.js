@@ -1,18 +1,24 @@
 import Migration from './migration';
+import { DEFAULT_TYPE } from './constants';
 
+/**
+ * SimpleMigration requires you to declare _savedObjectType OR _searchQuery, _newVersion, _index (optional), _type (optional),
+ * in constructor and two methods: _shouldObjectUpgrade and _upgradeObject which would be passed the objects by
+ * the base class to count and upgrade objects if the version is < _newVersion.
+ *
+ * Warning: Every new migration should bump the saved object's Version (defined by _newVersion, positive integer).
+ */
 export default class SimpleMigration extends Migration {
   constructor(configuration) {
     super(configuration);
     this._defaultIndex = configuration.config.get('kibana.index');
-    this._defaultType = 'doc';
-
   }
 
   /**
    * @return {number}
    */
   get newVersion() {
-    if (!this._newVersion) {
+    if (!this._newVersion || !(parseInt(this._newVersion) > 0)) {
       throw new Error('Every SimpleMigration must declare a new object version (positive integer).');
     }
     return parseInt(this._newVersion);
@@ -26,6 +32,7 @@ export default class SimpleMigration extends Migration {
 
   /**
    * Returns the number of objects that can be upgraded by this migration.
+   * @return {number}
    */
   async count() {
     const { index, type, query } = this._getSearchParams();
@@ -33,11 +40,8 @@ export default class SimpleMigration extends Migration {
     let count = 0;
     for (let i = 0; i < objects.length; i++) {
       const savedObject = objects[i];
-      const currentVersion = savedObject._source[savedObject.type].version;
-      if (parseInt(currentVersion) < this.newVersion) {
-        if (await this._shouldObjectUpgrade(savedObject)) {
-          count++;
-        }
+      if (await this.checkOutdated(savedObject)) {
+        count++;
       }
     }
     return count;
@@ -45,6 +49,7 @@ export default class SimpleMigration extends Migration {
 
   /**
    * Performs an upgrade and returns the number of objects upgraded.
+   * @return {number}
    */
   async upgrade() {
     const migrationCount = await this.count();
@@ -53,16 +58,17 @@ export default class SimpleMigration extends Migration {
       const objects = await this.scrollSearch(index, type, query, this.scrollOptions);
       const bulkIndex = [];
       let upgradeCount = 0;
-      objects.forEach(obj => {
-        if (this._shouldObjectUpgrade(obj)) {
-          const { _index, _type, _id, _source } = this._upgradeObject(obj);
+      for (let i = 0; i < objects.length; i++) {
+        const savedObject = objects[i];
+        if (await this.checkOutdated(savedObject)) {
+          const { _index, _type, _id, _source } = this._upgradeObject(savedObject);
           bulkIndex.push({
             index: { _index, _type, _id }
           });
           bulkIndex.push(_source);
           upgradeCount++;
         }
-      });
+      }
 
       if (upgradeCount > 0) {
         await this._client.bulk({
@@ -73,6 +79,19 @@ export default class SimpleMigration extends Migration {
       return upgradeCount;
     }
     return migrationCount;
+  }
+
+  /**
+   * Checks if the saved object is outdated.
+   * @param  {Object} savedObject
+   * @return {boolean}
+   */
+  async checkOutdated(savedObject) {
+    const currentVersion = savedObject._source[savedObject._source.type].version;
+    if (parseInt(currentVersion) < this.newVersion) {
+      return await this._shouldObjectUpgrade(savedObject);
+    }
+    return false;
   }
 
   /**
@@ -114,8 +133,11 @@ export default class SimpleMigration extends Migration {
   _getSearchParams() {
     const params = {};
     if (this._savedObjectType) {
-      params.index = this._defaultIndex;
-      params.type = this._defaultType;
+      if (this._searchQuery) {
+        throw new Error('You may only define either _savedObjectType OR _savedObjectType, Not Both!');
+      }
+      params.index = this._index || this._defaultIndex;
+      params.type = this._type || DEFAULT_TYPE;
       params.query = {
         query: {
           match: {
@@ -125,7 +147,7 @@ export default class SimpleMigration extends Migration {
       };
     } else if (this._searchQuery) {
       params.index = this._index || this._defaultIndex;
-      params.type = this._type || this._defaultType;
+      params.type = this._type || DEFAULT_TYPE;
       params.query = this._searchQuery;
     } else {
       throw new Error('Every SimpleMigration must define _savedObjectType (String) or _searchQuery (Object)!');

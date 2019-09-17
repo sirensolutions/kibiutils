@@ -58,7 +58,7 @@ describe('migrations', function () {
       let scroll;
 
       beforeEach(function () {
-        search = sinon.stub(client, 'search', function (searchOptions) {
+        search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
           if (searchOptions.index === 'empty') {
             return {
               _scroll_id: 'scroll_id',
@@ -78,7 +78,7 @@ describe('migrations', function () {
           };
         });
 
-        scroll = sinon.stub(client, 'scroll', function () {
+        scroll = sinon.stub(client, 'scroll').callsFake(function () {
           return {
             _scroll_id: 'scroll_id',
             hits: {
