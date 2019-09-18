@@ -62,6 +62,7 @@ export default class SimpleMigration extends Migration {
         const savedObject = objects[i];
         if (await this.checkOutdated(savedObject)) {
           const { _index, _type, _id, _source } = this._upgradeObject(savedObject);
+          _source[_source.type].version = this.newVersion;
           bulkIndex.push({
             index: { _index, _type, _id }
           });
@@ -134,7 +135,7 @@ export default class SimpleMigration extends Migration {
     const params = {};
     if (this._savedObjectType) {
       if (this._searchQuery) {
-        throw new Error('You may only define either _savedObjectType OR _savedObjectType, Not Both!');
+        throw new Error('You may only define either _savedObjectType OR _searchQuery, Not Both!');
       }
       params.index = this._index || this._defaultIndex;
       params.type = this._type || DEFAULT_TYPE;
