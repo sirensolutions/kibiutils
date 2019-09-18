@@ -1,5 +1,5 @@
 import Migration from './migration';
-import { DEFAULT_TYPE } from './constants';
+const DEFAULT_TYPE = 'doc';
 
 /**
  * SimpleMigration requires you to declare _savedObjectType OR _searchQuery, _newVersion, _index (optional), _type (optional),
@@ -61,7 +61,7 @@ export default class SimpleMigration extends Migration {
       for (let i = 0; i < objects.length; i++) {
         const savedObject = objects[i];
         if (await this.checkOutdated(savedObject)) {
-          const { _index, _type, _id, _source } = this._upgradeObject(savedObject);
+          const { _index, _type, _id, _source } = await this._upgradeObject(savedObject);
           _source[_source.type].version = this.newVersion;
           bulkIndex.push({
             index: { _index, _type, _id }
@@ -88,7 +88,7 @@ export default class SimpleMigration extends Migration {
    * @return {boolean}
    */
   async checkOutdated(savedObject) {
-    const currentVersion = savedObject._source[savedObject._source.type].version;
+    const currentVersion = savedObject._source[savedObject._source.type].version || 0;
     if (parseInt(currentVersion) < this.newVersion) {
       return await this._shouldObjectUpgrade(savedObject);
     }

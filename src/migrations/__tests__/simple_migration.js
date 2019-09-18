@@ -1,7 +1,8 @@
 import expect from 'expect.js';
 import sinon from 'sinon';
 import SimpleMigration from '../simple_migration';
-import { DEFAULT_TYPE } from '../constants';
+
+const DEFAULT_TYPE = 'doc';
 
 describe('migrations', function () {
   const KIBANA_INDEX = '.siren';
