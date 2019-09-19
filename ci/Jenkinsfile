@@ -1,0 +1,8 @@
+#!/usr/bin/env groovy
+library 'jenkins-lib'
+
+sirenPluginPipeline {
+  testCommand = 'npm run test'
+  display = false
+  installInvestigate = false
+}
