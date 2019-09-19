@@ -38,8 +38,7 @@ export default class SimpleMigration extends Migration {
     const { index, type, query } = this._getSearchParams();
     const objects = await this.scrollSearch(index, type, query);
     let count = 0;
-    for (let i = 0; i < objects.length; i++) {
-      const savedObject = objects[i];
+    for (const savedObject of objects) {
       if (await this.checkOutdated(savedObject)) {
         count++;
       }
@@ -56,17 +55,16 @@ export default class SimpleMigration extends Migration {
     if (migrationCount > 0) {
       const { index, type, query } = this._getSearchParams();
       const objects = await this.scrollSearch(index, type, query, this.scrollOptions);
-      const bulkIndex = [];
+      const bulkBody = [];
       let upgradeCount = 0;
-      for (let i = 0; i < objects.length; i++) {
-        const savedObject = objects[i];
+      for (const savedObject of objects) {
         if (await this.checkOutdated(savedObject)) {
           const { _index, _type, _id, _source } = await this._upgradeObject(savedObject);
           _source[_source.type].version = this.newVersion;
-          bulkIndex.push({
+          bulkBody.push({
             index: { _index, _type, _id }
           });
-          bulkIndex.push(_source);
+          bulkBody.push(_source);
           upgradeCount++;
         }
       }
@@ -74,7 +72,7 @@ export default class SimpleMigration extends Migration {
       if (upgradeCount > 0) {
         await this._client.bulk({
           refresh: true,
-          body: bulkIndex
+          body: bulkBody
         });
       }
       return upgradeCount;
