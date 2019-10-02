@@ -9,7 +9,7 @@ describe('migrations', function () {
     const client = {
       search: () => {},
       scroll: () => {},
-      count: () => ({count: 15})
+      count: () => ({ count: 15 })
     };
     const configuration = {
       index: 'index',
@@ -58,7 +58,7 @@ describe('migrations', function () {
       let scroll;
 
       beforeEach(function () {
-        search = sinon.stub(client, 'search', function (searchOptions) {
+        search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
           if (searchOptions.index === 'empty') {
             return {
               _scroll_id: 'scroll_id',
@@ -78,7 +78,7 @@ describe('migrations', function () {
           };
         });
 
-        scroll = sinon.stub(client, 'scroll', function () {
+        scroll = sinon.stub(client, 'scroll').callsFake(function () {
           return {
             _scroll_id: 'scroll_id',
             hits: {
@@ -93,24 +93,24 @@ describe('migrations', function () {
         const migration = new Migration(configuration);
         await migration.scrollSearch('empty', 'type', {});
 
-        expect(search.calledOnce);
-        expect(search.calledWith(sinon.match({size: 100})));
+        sinon.assert.calledOnce(search);
+        sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
       });
 
       it('should set a default size if no size has been specified', async () => {
         const migration = new Migration(configuration);
         await migration.scrollSearch('empty', 'type', {}, {});
 
-        expect(search.calledOnce);
-        expect(search.calledWith(sinon.match({size: 100})));
+        sinon.assert.calledOnce(search);
+        sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
       });
 
       it('should use the specified size', async () => {
         const migration = new Migration(configuration);
-        await migration.scrollSearch('empty', 'type', {}, {size: 1000});
+        await migration.scrollSearch('empty', 'type', {}, { size: 1000 });
 
-        expect(search.calledOnce);
-        expect(search.calledWith(sinon.match({size: 1000})));
+        sinon.assert.calledOnce(search);
+        sinon.assert.alwaysCalledWith(search, sinon.match({ size: 1000 }));
       });
 
       it('should use the scroll API to fetch hits', async () => {
@@ -128,14 +128,15 @@ describe('migrations', function () {
 
         const results = await migration.scrollSearch(index, type, query, options);
 
-        expect(search.calledOnce);
-        expect(search.calledWith({
-          index: index,
-          type: type,
-          scroll: '1m',
-          size: options.size,
-          body: query
-        }));
+        sinon.assert.calledOnce(search);
+        sinon.assert.alwaysCalledWith(search,
+          {
+            index: index,
+            type: type,
+            scroll: '1m',
+            size: options.size,
+            body: query
+          });
 
         expect(scroll.callCount).to.be(9);
         for (let i = 0; i < scroll.callCount; i++) {

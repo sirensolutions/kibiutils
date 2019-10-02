@@ -1,8 +1,2 @@
 ---
-extends: '@elastic/kibana'
-rules:
-  no-unused-vars: 0
-  no-var: 1
-  prefer-const: 1
-  no-extra-semi: 0
-  quotes: 0
+extends: 'eslint-config-siren'
