@@ -1,0 +1,9 @@
+extends: eslint-config-siren
+rules:
+  no-extra-semi: warn
+  quotes: warn
+  key-spacing: warn
+  no-unused-vars: warn
+  comma-spacing: warn
+  no-undef: warn
+
