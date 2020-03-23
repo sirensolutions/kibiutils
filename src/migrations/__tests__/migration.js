@@ -1,15 +1,14 @@
 import expect from 'expect.js';
 import sinon from 'sinon';
 import Migration from '../migration';
+import {
+  ES_API,
+  formatTotalHits
+} from '../../test_utils/helpers';
 
 describe('migrations', function () {
 
   describe('Migration', function () {
-
-    const ES_API = Object.freeze({
-      v5_x: '5_x',
-      v7_x: '7_x'
-    });
 
     const client = {
       search: () => {},
@@ -20,20 +19,6 @@ describe('migrations', function () {
       index:  'index',
       client: client
     };
-
-    function formatTotalHits(value, format) {
-      switch (format) {
-        case ES_API.v5_x:
-          return value;
-        case ES_API.v7_x:
-          return {
-            value,
-            relation: 'eq'
-          };
-        default:
-          return value;
-      }
-    }
 
     it('should check arguments at instantiation time', function () {
       expect(() => new Migration()).to.throwError();
