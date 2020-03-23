@@ -32,6 +32,19 @@ export default class Migration {
   }
 
   /**
+   * Retrieves the total hit count from a response object
+   * @param  {Object} response
+   * @return {Number} Total hit count
+   */
+  getTotalHitCount(response) {
+    const total = response.hits.total;
+    if (typeof total === "object") {
+      return total.value;
+    }
+    return total;
+  }
+
+  /**
    * Performs an upgrade and returns the number of objects upgraded.
    */
   async upgrade() {
@@ -70,7 +83,7 @@ export default class Migration {
 
     while (true) {
       objects.push(...response.hits.hits);
-      if (objects.length === response.hits.total) {
+      if (objects.length === this.getTotalHitCount(response)) {
         break;
       }
       response = await this._client.scroll({
