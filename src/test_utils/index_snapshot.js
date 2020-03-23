@@ -8,7 +8,7 @@
 export default async function indexSnapshot(client, index) {
   const response = await client.search({
     index: index,
-    size: 100
+    size:  100
   });
 
   return response.hits.hits.reduce((acc, value) => acc.set(value._id, value), new Map());

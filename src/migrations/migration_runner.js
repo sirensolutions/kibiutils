@@ -1,5 +1,5 @@
-import { each, has } from 'lodash';
-require("babel-polyfill");
+import { each } from 'lodash';
+require('babel-polyfill');
 
 /**
  * A migration runner.
@@ -51,7 +51,7 @@ export default class MigrationRunner {
       each(pluginMigrations, Migration => {
         const configuration = {
           config: this._server.config(),
-          client: this._server.plugins.elasticsearch.getCluster("admin").getClient(),
+          client: this._server.plugins.elasticsearch.getCluster('admin').getClient(),
           logger: this._logger,
           server: this._server
         };
@@ -127,4 +127,4 @@ export default class MigrationRunner {
     }
     return upgradedTotal;
   }
-};
+}

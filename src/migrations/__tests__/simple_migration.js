@@ -24,9 +24,9 @@ describe('migrations', function () {
   const dummySavedObject = Object.freeze({
     _index,
     _type,
-    _id: 'jnvckemkcekrmc',
+    _id:     'jnvckemkcekrmc',
     _source: {
-      type: savedObjectType,
+      type:              savedObjectType,
       [savedObjectType]: {
         version: 2
       }
@@ -51,7 +51,7 @@ describe('migrations', function () {
         }
         expect().fail('Exception not thrown!');
       });
-      it('_shouldObjectUpgrade not implemented',async () => {
+      it('_shouldObjectUpgrade not implemented', async () => {
         try {
           await invalidSimpleMigration._shouldObjectUpgrade(dummySavedObject);
         } catch (e) {
@@ -59,7 +59,7 @@ describe('migrations', function () {
         }
         expect().fail('Exception not thrown!');
       });
-      it('_upgradeObject not implemented',async () => {
+      it('_upgradeObject not implemented', async () => {
         try {
           await invalidSimpleMigration._upgradeObject(dummySavedObject);
         } catch (e) {
@@ -75,12 +75,12 @@ describe('migrations', function () {
       const _upgradeObjectSpy = sinon.spy(simpleMigration, '_upgradeObject');
       simpleMigration._savedObjectType = savedObjectType;
       beforeEach(() => {
-        search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
+        search = sinon.stub(client, 'search').callsFake(function (scrollOptions) {
           return {
-            _scroll_id: 'scroll_id',
-            hits: {
+            _scroll_id: scrollOptions.body.scroll_id,
+            hits:       {
               total: 0,
-              hits: []
+              hits:  []
             }
           };
         });
@@ -90,12 +90,12 @@ describe('migrations', function () {
         _shouldObjectUpgradeSpy.resetHistory();
         _upgradeObjectSpy.resetHistory();
       });
-      it('_shouldObjectUpgrade not called',async () => {
+      it('_shouldObjectUpgrade not called', async () => {
         const count = await simpleMigration.count();
         expect(count).to.be(0);
         sinon.assert.notCalled(_shouldObjectUpgradeSpy);
       });
-      it('_upgradeObject not called',async () => {
+      it('_upgradeObject not called', async () => {
         const count = await simpleMigration.upgrade();
         expect(count).to.be(0);
         sinon.assert.notCalled(_upgradeObjectSpy);
@@ -109,12 +109,12 @@ describe('migrations', function () {
       const _upgradeObjectSpy = sinon.spy(simpleMigration, '_upgradeObject');
       simpleMigration._savedObjectType = savedObjectType;
       beforeEach(() => {
-        search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
+        search = sinon.stub(client, 'search').callsFake(function (scrollOptions) {
           return {
-            _scroll_id: 'scroll_id',
-            hits: {
+            _scroll_id: scrollOptions.body.scroll_id,
+            hits:       {
               total: 1,
-              hits: [dummySavedObject]
+              hits:  [dummySavedObject]
             }
           };
         });
@@ -124,18 +124,18 @@ describe('migrations', function () {
         _shouldObjectUpgradeSpy.resetHistory();
         _upgradeObjectSpy.resetHistory();
       });
-      it('_shouldObjectUpgrade not called',async () => {
+      it('_shouldObjectUpgrade not called', async () => {
         const count = await simpleMigration.count();
         expect(count).to.be(0);
         sinon.assert.notCalled(_shouldObjectUpgradeSpy);
       });
-      it('_upgradeObject not called',async () => {
+      it('_upgradeObject not called', async () => {
         const count = await simpleMigration.upgrade();
         expect(count).to.be(0);
         sinon.assert.notCalled(_upgradeObjectSpy);
       });
     });
-    describe('_getSearchParams',() => {
+    describe('_getSearchParams', () => {
       let simpleMigration;
       beforeEach(() => {
         simpleMigration = new SimpleMigration(configuration);
@@ -152,7 +152,7 @@ describe('migrations', function () {
         it('returns correct params', () => {
           expect(simpleMigration._getSearchParams()).to.eql({
             index: KIBANA_INDEX,
-            type: DEFAULT_TYPE,
+            type:  DEFAULT_TYPE,
             query: {
               query: {
                 match: {
@@ -167,7 +167,7 @@ describe('migrations', function () {
           simpleMigration._type = 'custom-type';
           expect(simpleMigration._getSearchParams()).to.eql({
             index: 'custom-index',
-            type: 'custom-type',
+            type:  'custom-type',
             query: {
               query: {
                 match: {
@@ -192,7 +192,7 @@ describe('migrations', function () {
         it('returns correct params', () => {
           expect(simpleMigration._getSearchParams()).to.eql({
             index: KIBANA_INDEX,
-            type: DEFAULT_TYPE,
+            type:  DEFAULT_TYPE,
             query
           });
         });
@@ -201,7 +201,7 @@ describe('migrations', function () {
           simpleMigration._type = 'custom-type';
           expect(simpleMigration._getSearchParams()).to.eql({
             index: 'custom-index',
-            type: 'custom-type',
+            type:  'custom-type',
             query
           });
         });

@@ -186,21 +186,21 @@ describe('migrations', function () {
           }
         },
         investigate_core: investigateCorePlugin,
-        plugin1: plugin1
+        plugin1:          plugin1
       }
     };
 
     const kbnServer4 = {
       migrations: {
-        plugin1: [fakeMigrationClass('plugin1_1', [2], [2]), fakeMigrationClass('plugin1_2', [5], [5])],
+        plugin1:          [fakeMigrationClass('plugin1_1', [2], [2]), fakeMigrationClass('plugin1_2', [5], [5])],
         investigate_core: [fakeMigrationClass('investigate_core_1', [1], [1])]
       }
     };
 
     const logger = {
-      info: (e) => console.log('INFO', e),
+      info:    (e) => console.log('INFO', e),
       warning: (e) => console.log('WARN', e),
-      error: (e) => console.log('ERROR', e)
+      error:   (e) => console.log('ERROR', e)
     };
 
     let infoSpy;
