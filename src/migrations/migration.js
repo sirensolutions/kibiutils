@@ -1,5 +1,5 @@
 import { defaults } from 'lodash';
-require("babel-polyfill");
+require('babel-polyfill');
 
 /**
  * The base class for migrations.
@@ -38,7 +38,7 @@ export default class Migration {
    */
   getTotalHitCount(response) {
     const total = response.hits.total;
-    if (typeof total === "object") {
+    if (typeof total === 'object') {
       return total.value;
     }
     return total;
@@ -69,10 +69,10 @@ export default class Migration {
     });
 
     const searchOptions = {
-      index: index,
-      type: type,
+      index:  index,
+      type:   type,
       scroll: '1m',
-      size: opts.size
+      size:   opts.size
     };
 
     if (query) {
@@ -88,7 +88,7 @@ export default class Migration {
       }
       response = await this._client.scroll({
         body: {
-          scroll: '1m',
+          scroll:    '1m',
           scroll_id: response._scroll_id
         }
       });
@@ -108,11 +108,11 @@ export default class Migration {
   async countHits(index, type, query) {
     const searchOptions = {
       index: index,
-      type: type,
-      body: query
+      type:  type,
+      body:  query
     };
 
     const response = await this._client.count(searchOptions);
     return response.count;
   }
-};
+}

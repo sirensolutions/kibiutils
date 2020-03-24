@@ -1,39 +1,24 @@
 import expect from 'expect.js';
 import sinon from 'sinon';
 import Migration from '../migration';
+import {
+  ES_API,
+  formatTotalHits
+} from '../../test_utils/helpers';
 
 describe('migrations', function () {
 
   describe('Migration', function () {
 
-    const ES_API = Object.freeze({
-      v5_x: '5_x',
-      v7_x: '7_x'
-    });
-
     const client = {
       search: () => {},
       scroll: () => {},
-      count: () => ({ count: 15 })
+      count:  () => ({ count: 15 })
     };
     const configuration = {
-      index: 'index',
+      index:  'index',
       client: client
     };
-
-    function formatTotalHits(value, format) {
-      switch (format) {
-        case ES_API.v5_x:
-          return value;
-        case ES_API.v7_x:
-          return {
-            value,
-            relation: 'eq'
-          };
-        default:
-          return value;
-      }
-    }
 
     it('should check arguments at instantiation time', function () {
       expect(() => new Migration()).to.throwError();
@@ -60,8 +45,8 @@ describe('migrations', function () {
         expect(result).to.be(15);
         expect(client.count.calledWith({
           index: index,
-          type: type,
-          body: query
+          type:  type,
+          body:  query
         }));
       });
 
@@ -82,18 +67,18 @@ describe('migrations', function () {
             if (searchOptions.index === 'empty') {
               return {
                 _scroll_id: `${esApi}_scroll_id`,
-                hits: {
+                hits:       {
                   total: formatTotalHits(0, esApi),
-                  hits: []
+                  hits:  []
                 }
               };
             }
 
             return {
               _scroll_id: `${esApi}_scroll_id`,
-              hits: {
+              hits:       {
                 total: formatTotalHits(100, esApi),
-                hits: new Array(10)
+                hits:  new Array(10)
               }
             };
           });
@@ -101,9 +86,9 @@ describe('migrations', function () {
           scroll = sinon.stub(client, 'scroll').callsFake(function (scrollOptions) {
             return {
               _scroll_id: scrollOptions.body.scroll_id,
-              hits: {
+              hits:       {
                 total: formatTotalHits(100, esApi),
-                hits: new Array(10)
+                hits:  new Array(10)
               }
             };
           });
@@ -151,18 +136,18 @@ describe('migrations', function () {
           sinon.assert.calledOnce(search);
           sinon.assert.alwaysCalledWith(search,
             {
-              index: index,
-              type: type,
+              index:  index,
+              type:   type,
               scroll: '1m',
-              size: options.size,
-              body: query
+              size:   options.size,
+              body:   query
             });
 
           expect(scroll.callCount).to.be(9);
           for (let i = 0; i < scroll.callCount; i++) {
             expect(scroll.getCall(i).args[0]).to.eql({
               body: {
-                scroll: '1m',
+                scroll:    '1m',
                 scroll_id: `${esApi}_scroll_id`
               }
             });

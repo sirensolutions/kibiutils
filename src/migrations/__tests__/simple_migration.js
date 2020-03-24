@@ -1,6 +1,10 @@
 import expect from 'expect.js';
 import sinon from 'sinon';
 import SimpleMigration from '../simple_migration';
+import {
+  ES_API,
+  formatTotalHits
+} from '../../test_utils/helpers';
 
 const DEFAULT_TYPE = 'doc';
 
@@ -24,9 +28,9 @@ describe('migrations', function () {
   const dummySavedObject = Object.freeze({
     _index,
     _type,
-    _id: 'jnvckemkcekrmc',
+    _id:     'jnvckemkcekrmc',
     _source: {
-      type: savedObjectType,
+      type:              savedObjectType,
       [savedObjectType]: {
         version: 2
       }
@@ -51,7 +55,7 @@ describe('migrations', function () {
         }
         expect().fail('Exception not thrown!');
       });
-      it('_shouldObjectUpgrade not implemented',async () => {
+      it('_shouldObjectUpgrade not implemented', async () => {
         try {
           await invalidSimpleMigration._shouldObjectUpgrade(dummySavedObject);
         } catch (e) {
@@ -59,7 +63,7 @@ describe('migrations', function () {
         }
         expect().fail('Exception not thrown!');
       });
-      it('_upgradeObject not implemented',async () => {
+      it('_upgradeObject not implemented', async () => {
         try {
           await invalidSimpleMigration._upgradeObject(dummySavedObject);
         } catch (e) {
@@ -68,74 +72,8 @@ describe('migrations', function () {
         expect().fail('Exception not thrown!');
       });
     });
-    describe('If count: 0', () => {
-      let search;
-      const simpleMigration = new SimpleMigration(configuration);
-      const _shouldObjectUpgradeSpy = sinon.spy(simpleMigration, '_shouldObjectUpgrade');
-      const _upgradeObjectSpy = sinon.spy(simpleMigration, '_upgradeObject');
-      simpleMigration._savedObjectType = savedObjectType;
-      beforeEach(() => {
-        search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
-          return {
-            _scroll_id: 'scroll_id',
-            hits: {
-              total: 0,
-              hits: []
-            }
-          };
-        });
-      });
-      afterEach(() => {
-        search.restore();
-        _shouldObjectUpgradeSpy.resetHistory();
-        _upgradeObjectSpy.resetHistory();
-      });
-      it('_shouldObjectUpgrade not called',async () => {
-        const count = await simpleMigration.count();
-        expect(count).to.be(0);
-        sinon.assert.notCalled(_shouldObjectUpgradeSpy);
-      });
-      it('_upgradeObject not called',async () => {
-        const count = await simpleMigration.upgrade();
-        expect(count).to.be(0);
-        sinon.assert.notCalled(_upgradeObjectSpy);
-      });
-    });
-    describe('If object version > newVersion', () => {
-      let search;
-      const simpleMigration = new SimpleMigration(configuration);
-      simpleMigration._newVersion = 1;
-      const _shouldObjectUpgradeSpy = sinon.spy(simpleMigration, '_shouldObjectUpgrade');
-      const _upgradeObjectSpy = sinon.spy(simpleMigration, '_upgradeObject');
-      simpleMigration._savedObjectType = savedObjectType;
-      beforeEach(() => {
-        search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
-          return {
-            _scroll_id: 'scroll_id',
-            hits: {
-              total: 1,
-              hits: [dummySavedObject]
-            }
-          };
-        });
-      });
-      afterEach(() => {
-        search.restore();
-        _shouldObjectUpgradeSpy.resetHistory();
-        _upgradeObjectSpy.resetHistory();
-      });
-      it('_shouldObjectUpgrade not called',async () => {
-        const count = await simpleMigration.count();
-        expect(count).to.be(0);
-        sinon.assert.notCalled(_shouldObjectUpgradeSpy);
-      });
-      it('_upgradeObject not called',async () => {
-        const count = await simpleMigration.upgrade();
-        expect(count).to.be(0);
-        sinon.assert.notCalled(_upgradeObjectSpy);
-      });
-    });
-    describe('_getSearchParams',() => {
+
+    describe('_getSearchParams', () => {
       let simpleMigration;
       beforeEach(() => {
         simpleMigration = new SimpleMigration(configuration);
@@ -152,7 +90,7 @@ describe('migrations', function () {
         it('returns correct params', () => {
           expect(simpleMigration._getSearchParams()).to.eql({
             index: KIBANA_INDEX,
-            type: DEFAULT_TYPE,
+            type:  DEFAULT_TYPE,
             query: {
               query: {
                 match: {
@@ -167,7 +105,7 @@ describe('migrations', function () {
           simpleMigration._type = 'custom-type';
           expect(simpleMigration._getSearchParams()).to.eql({
             index: 'custom-index',
-            type: 'custom-type',
+            type:  'custom-type',
             query: {
               query: {
                 match: {
@@ -192,7 +130,7 @@ describe('migrations', function () {
         it('returns correct params', () => {
           expect(simpleMigration._getSearchParams()).to.eql({
             index: KIBANA_INDEX,
-            type: DEFAULT_TYPE,
+            type:  DEFAULT_TYPE,
             query
           });
         });
@@ -201,9 +139,81 @@ describe('migrations', function () {
           simpleMigration._type = 'custom-type';
           expect(simpleMigration._getSearchParams()).to.eql({
             index: 'custom-index',
-            type: 'custom-type',
+            type:  'custom-type',
             query
           });
+        });
+      });
+    });
+
+    Object.keys(ES_API).forEach(version => {
+      const esApi = ES_API[version];
+      describe(`ES ${version}: If count: 0`, () => {
+        let search;
+        const simpleMigration = new SimpleMigration(configuration);
+        const _shouldObjectUpgradeSpy = sinon.spy(simpleMigration, '_shouldObjectUpgrade');
+        const _upgradeObjectSpy = sinon.spy(simpleMigration, '_upgradeObject');
+        simpleMigration._savedObjectType = savedObjectType;
+        beforeEach(() => {
+          search = sinon.stub(client, 'search').callsFake(function () {
+            return {
+              _scroll_id: `${esApi}_scroll_id`,
+              hits:       {
+                total: formatTotalHits(0, esApi),
+                hits:  []
+              }
+            };
+          });
+        });
+        afterEach(() => {
+          search.restore();
+          _shouldObjectUpgradeSpy.resetHistory();
+          _upgradeObjectSpy.resetHistory();
+        });
+        it('_shouldObjectUpgrade not called', async () => {
+          const count = await simpleMigration.count();
+          expect(count).to.be(0);
+          sinon.assert.notCalled(_shouldObjectUpgradeSpy);
+        });
+        it('_upgradeObject not called', async () => {
+          const count = await simpleMigration.upgrade();
+          expect(count).to.be(0);
+          sinon.assert.notCalled(_upgradeObjectSpy);
+        });
+      });
+
+      describe(`ES ${version}: If object version > newVersion`, () => {
+        let search;
+        const simpleMigration = new SimpleMigration(configuration);
+        simpleMigration._newVersion = 1;
+        const _shouldObjectUpgradeSpy = sinon.spy(simpleMigration, '_shouldObjectUpgrade');
+        const _upgradeObjectSpy = sinon.spy(simpleMigration, '_upgradeObject');
+        simpleMigration._savedObjectType = savedObjectType;
+        beforeEach(() => {
+          search = sinon.stub(client, 'search').callsFake(function () {
+            return {
+              _scroll_id: `${esApi}_scroll_id`,
+              hits:       {
+                total: formatTotalHits(1, esApi),
+                hits:  [dummySavedObject]
+              }
+            };
+          });
+        });
+        afterEach(() => {
+          search.restore();
+          _shouldObjectUpgradeSpy.resetHistory();
+          _upgradeObjectSpy.resetHistory();
+        });
+        it('_shouldObjectUpgrade not called', async () => {
+          const count = await simpleMigration.count();
+          expect(count).to.be(0);
+          sinon.assert.notCalled(_shouldObjectUpgradeSpy);
+        });
+        it('_upgradeObject not called', async () => {
+          const count = await simpleMigration.upgrade();
+          expect(count).to.be(0);
+          sinon.assert.notCalled(_upgradeObjectSpy);
         });
       });
     });

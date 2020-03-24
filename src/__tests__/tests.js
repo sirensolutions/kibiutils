@@ -399,7 +399,7 @@ describe('doesQueryDependOnEntity()', function () {
     for (let i = 0; i < notDependentQueries.length; i++) {
       const query = {
         activationQuery: '',
-        resultQuery: ''
+        resultQuery:     ''
       };
 
       query.activationQuery = notDependentQueries[i];
@@ -412,7 +412,7 @@ describe('doesQueryDependOnEntity()', function () {
     for (let i = 0; i < dependentQueries.length; i++) {
       const query = {
         activationQuery: '',
-        resultQuery: ''
+        resultQuery:     ''
       };
 
       query.activationQuery = dependentQueries[i];
@@ -426,7 +426,7 @@ describe('doesQueryDependOnEntity()', function () {
     for (let i = 0; i < notDependentQueries.length; i++) {
       const query = {
         activationQuery: '',
-        resultQuery: ''
+        resultQuery:     ''
       };
 
       query.resultQuery = notDependentQueries[i];
@@ -439,7 +439,7 @@ describe('doesQueryDependOnEntity()', function () {
     for (let i = 0; i < dependentQueries.length; i++) {
       const query = {
         activationQuery: '',
-        resultQuery: ''
+        resultQuery:     ''
       };
 
       query.resultQuery = dependentQueries[i];

@@ -14,7 +14,7 @@ export default class ScenarioManager {
     if (!timeout) timeout = 300;
 
     this.client = new elasticsearch.Client({
-      host: server,
+      host:           server,
       requestTimeout: timeout
     });
   }
@@ -33,7 +33,7 @@ export default class ScenarioManager {
         const body = require(path.join(scenario.baseDir, bulk.indexDefinition));
         await self.client.indices.create({
           index: bulk.indexName,
-          body: body
+          body:  body
         });
       }
 
@@ -45,7 +45,7 @@ export default class ScenarioManager {
       try {
         const response = await self.client.bulk({
           refresh: true,
-          body: body
+          body:    body
         });
 
         if (response.errors) {
@@ -57,7 +57,7 @@ export default class ScenarioManager {
       }
 
     }
-  };
+  }
 
   /**
    * Formats a bulk error response.
@@ -108,7 +108,7 @@ export default class ScenarioManager {
       }
       break;
     }
-  };
+  }
 
   /**
    * Reload a scenario.
@@ -119,7 +119,7 @@ export default class ScenarioManager {
 
     await self.unload(scenario);
     await self.load(scenario);
-  };
+  }
 
   /**
    * Sends a delete all indices request
@@ -128,5 +128,5 @@ export default class ScenarioManager {
     await this.client.indices.delete({
       index: '*'
     });
-  };
+  }
 }

@@ -72,7 +72,7 @@ export default class SimpleMigration extends Migration {
       if (upgradeCount > 0) {
         await this._client.bulk({
           refresh: true,
-          body: bulkBody
+          body:    bulkBody
         });
       }
       return upgradeCount;
@@ -153,4 +153,4 @@ export default class SimpleMigration extends Migration {
     }
     return params;
   }
-};
+}

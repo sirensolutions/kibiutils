@@ -1,4 +1,4 @@
-require("babel-polyfill");
+require('babel-polyfill');
 /**
  * A logger for migrations.
  */
@@ -31,4 +31,4 @@ export default class MigrationLogger {
     this._server.log(['info', this._name], message);
   }
 
-};
+}
