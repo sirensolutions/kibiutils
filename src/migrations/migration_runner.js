@@ -84,7 +84,7 @@ export default class MigrationRunner {
         }
       } catch (e) {
         this._logger.error(`Error during migration.count: ${migration.constructor.description}`);
-        console.error(e);
+        this._logger.error(e);
         throw e;
       }
     }
@@ -122,7 +122,7 @@ export default class MigrationRunner {
           }
         } catch (e) {
           this._logger.error(`Error during migration.upgrade: ${migration.constructor.description}`);
-          console.error(e);
+          this._logger.error(e);
           throw e;
         }
       }
