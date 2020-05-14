@@ -76,10 +76,16 @@ export default class MigrationRunner {
     let toUpgrade = 0;
     let warning = 'The following migrations reported outdated objects:\n';
     for (const migration of this.getMigrations()) {
-      const count = await migration.count();
-      toUpgrade += count;
-      if (count > 0) {
-        warning += `${count} objects - "${migration.constructor.description}"\n`;
+      try {
+        const count = await migration.count();
+        toUpgrade += count;
+        if (count > 0) {
+          warning += `${count} objects - "${migration.constructor.description}"\n`;
+        }
+      } catch (e) {
+        this._logger.error(`Error during migration.count: ${migration.constructor.description}`);
+        console.error(e);
+        throw e;
       }
     }
     if (toUpgrade > 0 && loggingEnabled) {
@@ -107,11 +113,17 @@ export default class MigrationRunner {
       info = `Iteration: ${iteration}\n`;
       upgradedThisIteration = 0;
       for (const migration of migrations) {
-        const count = await migration.upgrade();
-        upgradedTotal += count;
-        upgradedThisIteration += count;
-        if (count > 0) {
-          info += `${count} objects - "${migration.constructor.description}"\n`;
+        try {
+          const count = await migration.upgrade();
+          upgradedTotal += count;
+          upgradedThisIteration += count;
+          if (count > 0) {
+            info += `${count} objects - "${migration.constructor.description}"\n`;
+          }
+        } catch (e) {
+          this._logger.error(`Error during migration.upgrade: ${migration.constructor.description}`);
+          console.error(e);
+          throw e;
         }
       }
       if (upgradedThisIteration > 0) {
