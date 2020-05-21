@@ -15,6 +15,7 @@ export default class Migration {
 
     this._client = configuration.client;
     this._config = configuration.config;
+    this._logger = configuration.logger;
   }
 
   /**
@@ -22,6 +23,32 @@ export default class Migration {
    */
   static get description() {
     return 'No description';
+  }
+
+  get logger() {
+    if (this._logger) {
+      return this._logger;
+    }
+    return {
+      info:    console.info,
+      error:   console.error,
+      warning: console.warn
+    };
+  }
+
+  /**
+   * Tries to parse objectString to JSON Object, logs warning and returns {} on failure.
+   * @param {String} objectString
+   * @returns Parsed JSON Object or {} on failure
+   */
+  parseJSON(objectString) {
+    try {
+      return JSON.parse(objectString);
+    } catch (e) {
+      this.logger.warning(`Unable to parse to JSON object: ${objectString}`);
+      this.logger.error(e);
+      return {};
+    }
   }
 
   /**
