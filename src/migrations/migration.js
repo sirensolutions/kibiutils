@@ -41,7 +41,7 @@ export default class Migration {
    * @param {String} objectString
    * @returns Parsed JSON Object or {} on failure
    */
-  _parseJSON(objectString) {
+  parseJSON(objectString) {
     try {
       return JSON.parse(objectString);
     } catch (e) {
