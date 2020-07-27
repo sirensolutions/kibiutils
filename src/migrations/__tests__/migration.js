@@ -13,6 +13,7 @@ describe('migrations', function () {
     const client = {
       search: () => {},
       scroll: () => {},
+      clearScroll: () => {},
       count:  () => ({ count: 15 })
     };
     const configuration = {
@@ -61,6 +62,7 @@ describe('migrations', function () {
       describe(`ES ${version}: scrollSearch`, function () {
         let search;
         let scroll;
+        let clearScroll;
 
         beforeEach(function () {
           search = sinon.stub(client, 'search').callsFake(function (searchOptions) {
@@ -92,6 +94,8 @@ describe('migrations', function () {
               }
             };
           });
+
+          clearScroll = sinon.stub(client, 'clearScroll').callsFake(() => ({ succeeded: true }));
         });
 
         it('should set default options if options have not been defined', async () => {
@@ -153,12 +157,18 @@ describe('migrations', function () {
             });
           }
 
+          expect(clearScroll.callCount).to.be(1);
+          expect(clearScroll.getCall(0).args[0]).to.eql({
+            body: {
+              scroll_id: `${esApi}_scroll_id`
+            }
+          });
+
           expect(results.length).to.be(100);
         });
 
         afterEach(() => {
-          search.restore();
-          scroll.restore();
+          sinon.restore();
         });
       });
     });
