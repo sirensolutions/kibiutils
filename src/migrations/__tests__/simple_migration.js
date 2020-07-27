@@ -15,6 +15,7 @@ describe('migrations', function () {
   };
   const client = {
     search: () => {},
+    clearScroll: () => {},
     scroll: () => {}
   };
   const configuration = {

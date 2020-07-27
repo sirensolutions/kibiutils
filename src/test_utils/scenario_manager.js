@@ -99,6 +99,7 @@ export default class ScenarioManager {
           });
         } catch (error) {
           if (error.message.indexOf('index_not_found_exception') < 0) {
+            // eslint-disable-next-line no-console
             console.log('error.message: ' + error.message);
             throw error;
           }

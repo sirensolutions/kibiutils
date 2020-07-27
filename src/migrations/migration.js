@@ -30,8 +30,11 @@ export default class Migration {
       return this._logger;
     }
     return {
+      // eslint-disable-next-line no-console
       info:    console.info,
+      // eslint-disable-next-line no-console
       error:   console.error,
+      // eslint-disable-next-line no-console
       warning: console.warn
     };
   }
@@ -111,6 +114,13 @@ export default class Migration {
     while (true) {
       objects.push(...response.hits.hits);
       if (objects.length === this.getTotalHitCount(response)) {
+        if (response._scroll_id) {
+          await this._client.clearScroll({
+            body: {
+              scroll_id: response._scroll_id
+            }
+          });
+        }
         break;
       }
       response = await this._client.scroll({

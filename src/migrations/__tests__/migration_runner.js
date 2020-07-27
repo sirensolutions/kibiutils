@@ -198,8 +198,11 @@ describe('migrations', function () {
     };
 
     const logger = {
+      // eslint-disable-next-line no-console
       info:    (e) => console.log('INFO', e),
+      // eslint-disable-next-line no-console
       warning: (e) => console.log('WARN', e),
+      // eslint-disable-next-line no-console
       error:   (e) => console.log('ERROR', e)
     };
 
