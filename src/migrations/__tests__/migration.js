@@ -14,7 +14,7 @@ describe('migrations', function () {
       search: () => {},
       scroll: () => {},
       clearScroll: () => {},
-      count:  () => ({ count: 15 })
+      count:  () => {}
     };
     const configuration = {
       index:  'index',
@@ -27,8 +27,31 @@ describe('migrations', function () {
     });
     describe('countHits', function () {
 
-      beforeEach(function () {
-        sinon.spy(client, 'count');
+      before(function () {
+        sinon.stub(client, 'count');
+      });
+
+      it('should return 0 if index not present', async () => {
+        const migration = new Migration(configuration);
+        const index = 'index';
+        const type = 'type';
+        const query = {
+          query: {
+            match_all: {}
+          }
+        };
+        client.count.returns({ status: 404 });
+
+        const result = await migration.countHits(index, type, query);
+
+        expect(result).to.be(0);
+        expect(client.count.calledWith({
+          index: index,
+          type:  type,
+          body:  query,
+          ignore_unavailable: true,
+          ignore: [404]
+        }));
       });
 
       it('should build the correct query and return the result', async () => {
@@ -40,6 +63,7 @@ describe('migrations', function () {
             match_all: {}
           }
         };
+        client.count.returns({ count: 15 });
 
         const result = await migration.countHits(index, type, query);
 
@@ -47,14 +71,19 @@ describe('migrations', function () {
         expect(client.count.calledWith({
           index: index,
           type:  type,
-          body:  query
+          body:  query,
+          ignore_unavailable: true,
+          ignore: [404]
         }));
       });
 
       afterEach(function () {
-        client.count.restore();
+        client.count.reset();
       });
 
+      after(function () {
+        client.count.restore();
+      });
     });
 
     Object.keys(ES_API).forEach(version => {

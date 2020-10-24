@@ -146,10 +146,15 @@ export default class Migration {
     const searchOptions = {
       index: index,
       type:  type,
-      body:  query
+      body:  query,
+      ignore_unavailable: true,
+      ignore: [404]
     };
 
     const response = await this._client.count(searchOptions);
+    if (response.status === 404) {
+      return 0;
+    }
     return response.count;
   }
 }
