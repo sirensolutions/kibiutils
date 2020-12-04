@@ -144,11 +144,11 @@
       if (id == null) return;
 
       const trans = {
-        '/':   '-slash-',
+        '/': '-slash-',
         '\\?': '-questionmark-',
         '\\&': '-ampersand-',
-        '=':   '-equal-',
-        '#':   '-hash-'
+        '=': '-equal-',
+        '#': '-hash-'
       };
 
       for (const key in trans) {
@@ -167,12 +167,12 @@
     //
 
     const DatasourceTypes = {
-      sqlite:      'sqlite',
-      rest:        'rest',
-      postgresql:  'postgresql',
-      mysql:       'mysql',
+      sqlite: 'sqlite',
+      rest: 'rest',
+      postgresql: 'postgresql',
+      mysql: 'mysql',
       sparql_http: 'sparql_http',
-      sql_jdbc:    'sql_jdbc',
+      sql_jdbc: 'sql_jdbc',
       sparql_jdbc: 'sparql_jdbc'
     };
 
@@ -233,12 +233,12 @@
 
       slugifyId: slugifyId,
 
-      isSQL:                   isSQL,
-      isJDBC:                  isJDBC,
-      isSPARQL:                isSPARQL,
-      DatasourceTypes:         DatasourceTypes,
+      isSQL: isSQL,
+      isJDBC: isJDBC,
+      isSPARQL: isSPARQL,
+      DatasourceTypes: DatasourceTypes,
       doesQueryDependOnEntity: doesQueryDependOnEntity,
-      getValuesAtPath:         getValuesAtPath
+      getValuesAtPath: getValuesAtPath
     };
 
   }());
