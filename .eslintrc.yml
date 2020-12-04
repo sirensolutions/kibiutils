@@ -1,4 +1,4 @@
-extends: eslint-config-siren
+extends: ['plugin:siren/recommended']
 rules:
   no-extra-semi: warn
   quotes: warn
