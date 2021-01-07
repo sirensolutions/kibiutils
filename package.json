@@ -69,8 +69,7 @@
     "lodash": "^4.17.19",
     "mocha": "^5.2.0",
     "precommit-hook": "3.0.0",
-    "sinon": "^5.0.7",
-    "webpack": "github:elastic/webpack#fix/query-params-for-aliased-loaders"
+    "sinon": "^5.0.7"
   },
   "dependencies": {}
 }
