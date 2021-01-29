@@ -1,10 +1,72 @@
 import { defaults } from 'lodash';
 require('babel-polyfill');
 
+function getErrorIdentifier(error) {
+  let errorType = '';
+  for (let i = 0; i < 3; i++) { //Limiting the nesting to 3 for performance
+    errorType += error.type;
+    if (error.caused_by) {
+      error = error.caused_by;
+    } else {
+      break;
+    }
+  }
+  return errorType;
+}
+
 /**
  * The base class for migrations.
  */
 export default class Migration {
+  /**
+   * Returns the description of the migration.
+   */
+  static get description() {
+    return 'No description';
+  }
+
+  /**
+   * Parses the {@link bulkResponse} for errors, logs (unique errors) and throws if found.
+   * @param {Object} bulkResponse
+   * @param {string} actionType
+   * @param {Logger} logger
+   */
+  static checkBulkResponse(bulkResponse, actionType, logger) {
+    if (bulkResponse.errors) {
+      const errorsDuringIndexing = bulkResponse.items.filter((ele) => ele[actionType].error);
+      errorsDuringIndexing.reduce(function (uniqueErrors, ele) {
+        const errorIdentifier = getErrorIdentifier(ele.index.error);
+        const existingError = uniqueErrors.find((ele) => ele.index.error._identifier === errorIdentifier);
+        if (!existingError) {
+          ele.index.error._identifier = errorIdentifier;
+          ele.index.error.errorCount = 1;
+          ele.index.docIds = [ ele.index._id ];
+          uniqueErrors.push(ele);
+        } else {
+          existingError.index.error.errorCount++;
+          if (existingError.index.docIds.length < 5) {
+            existingError.index.docIds.push(ele.index._id);
+          }
+        }
+        return uniqueErrors;
+      }, []);
+
+      let totalErrors = 0;
+      errorsDuringIndexing.forEach(ele => {
+        const error = ele[actionType].error;
+        const causedBy = error.caused_by || error;
+        // Should we also log (upto first 5) docIds?
+        logger.error(`(${error.errorCount}) ${error.type}: ${causedBy.reason}`);
+        totalErrors += error.errorCount;
+      });
+      throw new Error(`${totalErrors} errors occurred in bulk request`);
+
+    } else if (bulkResponse.error !== undefined) {
+      logger.error(bulkResponse.error);
+      throw new Error(bulkResponse.error);
+    }
+  }
+
   /**
    * Creates a new Migration.
    *
@@ -16,13 +78,6 @@ export default class Migration {
     this._client = configuration.client;
     this._config = configuration.config;
     this._logger = configuration.logger;
-  }
-
-  /**
-   * Returns the description of the migration.
-   */
-  static get description() {
-    return 'No description';
   }
 
   get logger() {
