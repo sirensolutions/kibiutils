@@ -59,7 +59,7 @@ export default class Migration {
         logger.error(`(${error.errorCount}) ${error.type}: ${causedBy.reason}`);
         totalErrors += error.errorCount;
       });
-      throw new Error(`${totalErrors} errors occurred in bulk request`);
+      throw new Error(`${totalErrors} error(s) occurred in bulk request`);
 
     } else if (bulkResponse.error !== undefined) {
       logger.error(bulkResponse.error);
