@@ -1,6 +1,30 @@
 import { defaults } from 'lodash';
 require('babel-polyfill');
 
+const BULK_REQUEST_TYPES = ['index', 'delete', 'create', 'update'];
+
+/**
+ *
+ * @param {{
+ *   ['index'|'delete'|'create'|'update']: {
+ *     error?: Object,
+ *     _id?: string
+ *   }
+ * }} bulkResponseItem
+ * @returns {{
+ *   error?: Object,
+ *   _id?: string
+ * }} documentOperationResponse
+ */
+function getDocumentOperationResponse(bulkResponseItem) {
+  for (let i = 0; i < BULK_REQUEST_TYPES.length; i++) {
+    const documentOpResponse = bulkResponseItem[BULK_REQUEST_TYPES[i]];
+    if (documentOpResponse) {
+      return documentOpResponse;
+    }
+  }
+}
+
 function getErrorIdentifier(error) {
   let errorType = '';
   for (let i = 0; i < 3; i++) { //Limiting the nesting to 3 for performance
@@ -25,35 +49,35 @@ export default class Migration {
     return 'No description';
   }
 
+
   /**
    * Parses the {@link bulkResponse} for errors, logs (unique errors) and throws if found.
    * @param {Object} bulkResponse
-   * @param {string} actionType
    * @param {Logger} logger
    */
-  static checkBulkResponse(bulkResponse, actionType, logger) {
+  static checkBulkResponse(bulkResponse, logger) {
     if (bulkResponse.errors) {
-      const errorsDuringIndexing = bulkResponse.items.filter((ele) => ele[actionType].error);
-      errorsDuringIndexing.reduce(function (uniqueErrors, ele) {
-        const errorIdentifier = getErrorIdentifier(ele.index.error);
+      const errorsDuringIndexing = bulkResponse.items.map(item => getDocumentOperationResponse(item)).filter((docResp) => docResp.error);
+      errorsDuringIndexing.reduce(function (uniqueErrors, docResp) {
+        const errorIdentifier = getErrorIdentifier(docResp.error);
         const existingError = uniqueErrors.find((ele) => ele.index.error._identifier === errorIdentifier);
         if (!existingError) {
-          ele.index.error._identifier = errorIdentifier;
-          ele.index.error.errorCount = 1;
-          ele.index.docIds = [ ele.index._id ];
-          uniqueErrors.push(ele);
+          docResp.error._identifier = errorIdentifier;
+          docResp.error.errorCount = 1;
+          docResp.docIds = [ docResp._id ];
+          uniqueErrors.push(docResp);
         } else {
           existingError.index.error.errorCount++;
-          if (existingError.index.docIds.length < 5) {
-            existingError.index.docIds.push(ele.index._id);
+          if (docResp._id && existingError.index.docIds.length < 5) {
+            existingError.index.docIds.push(docResp._id);
           }
         }
         return uniqueErrors;
       }, []);
 
       let totalErrors = 0;
-      errorsDuringIndexing.forEach(ele => {
-        const error = ele[actionType].error;
+      errorsDuringIndexing.forEach(docResp => {
+        const error = docResp.error;
         const causedBy = error.caused_by || error;
         // Should we also log (upto first 5) docIds?
         logger.error(`(${error.errorCount}) ${error.type}: ${causedBy.reason}`);
@@ -78,6 +102,14 @@ export default class Migration {
     this._client = configuration.client;
     this._config = configuration.config;
     this._logger = configuration.logger;
+
+    // Wrapping bulk method to auto-parse (and throw) any errors
+    const originalBulk = this._client.bulk.bind(this._client);
+    this._client.bulk = async (...args) => {
+      const resp = await originalBulk(...args);
+      Migration.checkBulkResponse(resp, this._logger);
+      return resp;
+    };
   }
 
   get logger() {
@@ -86,9 +118,9 @@ export default class Migration {
     }
     return {
       // eslint-disable-next-line no-console
-      info:    console.info,
+      info: console.info,
       // eslint-disable-next-line no-console
-      error:   console.error,
+      error: console.error,
       // eslint-disable-next-line no-console
       warning: console.warn
     };
@@ -154,10 +186,10 @@ export default class Migration {
     });
 
     const searchOptions = {
-      index:  index,
-      type:   type,
+      index: index,
+      type: type,
       scroll: '1m',
-      size:   opts.size
+      size: opts.size
     };
 
     if (query) {
@@ -180,7 +212,7 @@ export default class Migration {
       }
       response = await this._client.scroll({
         body: {
-          scroll:    '1m',
+          scroll: '1m',
           scroll_id: response._scroll_id
         }
       });
@@ -200,8 +232,8 @@ export default class Migration {
   async countHits(index, type, query) {
     const searchOptions = {
       index: index,
-      type:  type,
-      body:  query
+      type: type,
+      body: query
     };
 
     const response = await this._client.count(searchOptions);

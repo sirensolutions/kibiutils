@@ -71,11 +71,10 @@ export default class SimpleMigration extends Migration {
       }
 
       if (upgradeCount > 0) {
-        const bulkResponse = await this._client.bulk({
+        await this._client.bulk({
           refresh: true,
-          body:    bulkBody
+          body: bulkBody
         });
-        Migration.checkBulkResponse(bulkResponse, bulkAction, this.logger);
       }
       return upgradeCount;
     }
