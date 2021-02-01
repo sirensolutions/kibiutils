@@ -17,8 +17,8 @@ const BULK_REQUEST_TYPES = ['index', 'delete', 'create', 'update'];
  * }} documentOperationResponse
  */
 function getDocumentOperationResponse(bulkResponseItem) {
-  for (let i = 0; i < BULK_REQUEST_TYPES.length; i++) {
-    const documentOpResponse = bulkResponseItem[BULK_REQUEST_TYPES[i]];
+  for (let actionType of BULK_REQUEST_TYPES) {
+    const documentOpResponse = bulkResponseItem[actionType];
     if (documentOpResponse) {
       return documentOpResponse;
     }
