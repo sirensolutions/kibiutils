@@ -14,6 +14,7 @@ describe('migrations', function () {
     get: () => KIBANA_INDEX
   };
   const client = {
+    bulk: () => {},
     search: () => {},
     clearScroll: () => {},
     scroll: () => {}

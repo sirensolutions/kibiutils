@@ -1,6 +1,6 @@
 {
   "name": "kibiutils",
-  "version": "10.18.0",
+  "version": "10.18.1",
   "description": "Small utility lib for the Kibi project",
   "main": "./lib/kibiutils.js",
   "scripts": {

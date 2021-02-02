@@ -57,12 +57,13 @@ export default class SimpleMigration extends Migration {
       const objects = await this.scrollSearch(index, type, query, this.scrollOptions);
       const bulkBody = [];
       let upgradeCount = 0;
+      const bulkAction = 'index';
       for (const savedObject of objects) {
         if (await this.checkOutdated(savedObject)) {
           const { _index, _type, _id, _source } = await this._upgradeObject(savedObject);
           _source[_source.type].version = this.newVersion;
           bulkBody.push({
-            index: { _index, _type, _id }
+            [bulkAction]: { _index, _type, _id }
           });
           bulkBody.push(_source);
           upgradeCount++;
@@ -72,7 +73,7 @@ export default class SimpleMigration extends Migration {
       if (upgradeCount > 0) {
         await this._client.bulk({
           refresh: true,
-          body:    bulkBody
+          body: bulkBody
         });
       }
       return upgradeCount;
