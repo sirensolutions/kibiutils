@@ -19,7 +19,8 @@ describe('migrations', function () {
 
       return class Migration {
 
-        constructor() {
+        constructor({ client }) {
+          this._client = client;
           this.countCallNo = -1;
           this.upgradeCallNo = -1;
           this.description = description;
@@ -96,7 +97,9 @@ describe('migrations', function () {
           getCluster() {
             return {
               getClient() {
-                return {};
+                return {
+                  bulk: () => {}
+                };
               }
             };
           }
@@ -125,7 +128,9 @@ describe('migrations', function () {
           getCluster() {
             return {
               getClient() {
-                return {};
+                return {
+                  bulk: () => {}
+                };
               }
             };
           }
@@ -156,7 +161,9 @@ describe('migrations', function () {
           getCluster() {
             return {
               getClient() {
-                return {};
+                return {
+                  bulk: () => {}
+                };
               }
             };
           }
@@ -180,7 +187,9 @@ describe('migrations', function () {
           getCluster() {
             return {
               getClient() {
-                return {};
+                return {
+                  bulk: () => {}
+                };
               }
             };
           }
@@ -339,7 +348,9 @@ describe('migrations', function () {
             getCluster() {
               return {
                 getClient() {
-                  return {};
+                  return {
+                    bulk: () => {}
+                  };
                 }
               };
             }
@@ -423,19 +434,31 @@ describe('migrations', function () {
 
       describe('should', function () {
 
-        before(function () {
+        beforeEach(function () {
           sinon.spy(server.plugins.elasticsearch, 'getCluster');
         });
 
         it('cache migrations', async () => {
           const runner = new MigrationRunner(server, logger, kbnServer);
-          runner.getMigrations();
-          runner.getMigrations();
+          const firstCallResp = runner.getMigrations();
+          const secondCallResp = runner.getMigrations();
 
-          expect(server.plugins.elasticsearch.getCluster.callCount).to.equal(3);
+          expect(firstCallResp).to.equal(secondCallResp);
         });
 
-        after(function () {
+        it('should use patched es client for migrations', async () => {
+          const runner = new MigrationRunner(server, logger, kbnServer);
+          const patchedBulk = runner._patchedClient.getEsClient().bulk;
+          const migrations = runner.getMigrations();
+
+          expect(migrations.length).to.equal(3);
+          expect(server.plugins.elasticsearch.getCluster.callCount).to.equal(1);
+          expect(migrations[0]._client.bulk).to.equal(patchedBulk);
+          expect(migrations[1]._client.bulk).to.equal(patchedBulk);
+          expect(migrations[2]._client.bulk).to.equal(patchedBulk);
+        });
+
+        afterEach(function () {
           server.plugins.elasticsearch.getCluster.restore();
         });
 
@@ -458,6 +481,18 @@ describe('migrations', function () {
         });
       });
 
+
+      describe('cleanup', function () {
+
+        it('removes bulk patch from esClient', function () {
+          const runner = new MigrationRunner(server, logger, kbnServer);
+          const esClient = runner._patchedClient.getEsClient();
+          const beforeCleanup = esClient.bulk;
+          runner.cleanup();
+          const afterCleanup = esClient.bulk;
+          expect(beforeCleanup).to.not.equal(afterCleanup);
+        });
+      });
     });
 
 
