@@ -1,5 +1,6 @@
 import { each } from 'lodash';
 require('babel-polyfill');
+import PatchedEsClient from './patched_es_client';
 
 /**
  * A migration runner.
@@ -15,6 +16,7 @@ export default class MigrationRunner {
     this._server = server;
     this._logger = logger;
     this._kbnServer = kbnServer;
+    this._patchedClient = new PatchedEsClient(server.plugins.elasticsearch.getCluster('admin').getClient(), logger);
   }
 
   /**
@@ -51,7 +53,7 @@ export default class MigrationRunner {
       each(pluginMigrations, Migration => {
         const configuration = {
           config: this._server.config(),
-          client: this._server.plugins.elasticsearch.getCluster('admin').getClient(),
+          client: this._patchedClient.getEsClient(),
           logger: this._logger,
           server: this._server
         };
@@ -138,5 +140,9 @@ export default class MigrationRunner {
       this._logger.error(`The upgrade procedure could not finish after ${maxIteration} iterations`);
     }
     return upgradedTotal;
+  }
+
+  cleanup() {
+    this._patchedClient.cleanup();
   }
 }
