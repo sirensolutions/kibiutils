@@ -83,7 +83,7 @@ export default class MigrationRunner {
     for (let i = 0; i < migrations.length; i++) {
       const migration = migrations[i];
       if (this._debug) {
-        this._logger.debug(`Migration ${i} out of ${migrationsNo}: ${migration.constructor.description}`);
+        this._logger.debug(`Migration ${i + 1} out of ${migrationsNo}: ${migration.constructor.description}`);
       }
       try {
         const start = Date.now();
@@ -130,7 +130,7 @@ export default class MigrationRunner {
       for (let i = 0; i < migrations.length; i++) {
         const migration = migrations[i];
         if (this._debug) {
-          this._logger.debug(`Migration ${i} out of ${migrationsNo}: ${migration.constructor.description}`);
+          this._logger.debug(`Migration ${i + 1} out of ${migrationsNo}: ${migration.constructor.description}`);
         }
         try {
           const start = Date.now();

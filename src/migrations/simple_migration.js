@@ -37,11 +37,10 @@ export default class SimpleMigration extends Migration {
    */
   async count() {
     const { index, type, query } = this._getSearchParams();
-    const objectsEmitter = await this.scrollSearch(index, type, query, {}, true);
+    let objectsEmitter = await this.scrollSearch(index, type, query, {}, true);
     return new Promise(resolve => {
       const trackDataEvents = [];
       let count = 0;
-      // eslint-disable-next-line siren/memory-leak
       objectsEmitter.on('data', async objects => {
         trackDataEvents.push(1);
         for (const savedObject of objects) {
@@ -49,11 +48,14 @@ export default class SimpleMigration extends Migration {
             count++;
           }
         }
+        // assign null to let GC that it can be collected to reduce memory consumption
+        objects = null;
         trackDataEvents.pop();
       });
-      // eslint-disable-next-line siren/memory-leak
       objectsEmitter.on('end', async () => {
         await waitUntilArrayIsEmpty(trackDataEvents);
+        objectsEmitter.removeAllListeners();
+        objectsEmitter = null;
         resolve(count)
       });
     });
@@ -67,13 +69,12 @@ export default class SimpleMigration extends Migration {
     const migrationCount = await this.count();
     if (migrationCount > 0) {
       const { index, type, query } = this._getSearchParams();
-      const objectsEmitter = await this.scrollSearch(index, type, query, this.scrollOptions, true);
+      let objectsEmitter = await this.scrollSearch(index, type, query, this.scrollOptions, true);
 
       return new Promise(resolve => {
-        const bulkBody = [];
+        let bulkBody = [];
         let upgradeCount = 0;
         const trackDataEvents = [];
-        // eslint-disable-next-line siren/memory-leak
         objectsEmitter.on('data', async objects => {
           trackDataEvents.push(1);
           for (const savedObject of objects) {
@@ -89,12 +90,15 @@ export default class SimpleMigration extends Migration {
           }
           trackDataEvents.pop();
         });
-        // eslint-disable-next-line siren/memory-leak
         objectsEmitter.on('end', async () => {
           await waitUntilArrayIsEmpty(trackDataEvents);
           if (upgradeCount > 0) {
             await this.executeteBulkRequest(bulkBody);
           }
+          objectsEmitter.removeAllListeners();
+          // assign null to let GC that it can be collected to reduce memory consumption
+          bulkBody = null;
+          objectsEmitter = null;
           resolve(upgradeCount);
         });
       });
