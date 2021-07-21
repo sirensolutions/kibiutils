@@ -22,10 +22,157 @@ describe('migrations', function () {
       client: client
     };
 
+    afterEach(function () {
+      sinon.restore();
+    });
+
     it('should check arguments at instantiation time', function () {
       expect(() => new Migration()).to.throwError();
       expect(() => new Migration(configuration)).not.to.throwError();
     });
+
+    describe('bulk', function () {
+
+      let bulkSpy;
+
+      beforeEach(function () {
+        bulkSpy = sinon.spy(client, 'bulk');
+      });
+
+      it('should throw when incorrect bulk body detected - missing payload row', async () => {
+        const migration = new Migration(configuration);
+        const batchOperationNumber = 1;
+        try {
+          await migration.executeteBulkRequest([
+            { index : { _index: '.siren', _id : '1' } },
+            { index : { _index: '.siren', _id : '2' } },
+            { field1 : 'value2' },
+          ], batchOperationNumber);
+          expect('Should throw').to.equal(false);
+        } catch (error) {
+          sinon.assert.notCalled(bulkSpy);
+          expect(error.message).to.equal('Incorrect bulk body expected payload row at index 1 but got: {"index":{"_index":".siren","_id":"2"}}');
+        }
+      });
+
+      it('should throw when incorrect bulk body detected - extra payload row', async () => {
+        const migration = new Migration(configuration);
+        const batchOperationNumber = 2;
+        try {
+          await migration.executeteBulkRequest([
+            { index : { _index: '.siren', _id : '1' } },
+            { field1 : 'value1' },
+            { field1 : 'value7' },
+            { index : { _index: '.siren', _id : '2' } },
+            { field1 : 'value2' },
+          ], batchOperationNumber);
+          expect('Should throw').to.equal(false);
+        } catch (error) {
+          sinon.assert.notCalled(bulkSpy);
+          expect(error.message).to.equal('Incorrect bulk body expected meta row at index 2 but got: {"field1":"value7"}');
+        }
+      });
+
+      it('should throw when incorrect bulk body detected - missing payload at the end', async () => {
+        const migration = new Migration(configuration);
+        const batchOperationNumber = 2;
+        try {
+          await migration.executeteBulkRequest([
+            { index : { _index: '.siren', _id : '1' } },
+            { field1 : 'value1' },
+            { index : { _index: '.siren', _id : '2' } }
+          ], batchOperationNumber);
+          expect('Should throw').to.equal(false);
+        } catch (error) {
+          sinon.assert.notCalled(bulkSpy);
+          expect(error.message).to.equal('Incorrect bulk body expected additional payload row at index 3 but got nothing');
+        }
+      });
+
+      it('should send bulk request in batches - index operations, opearationsNo=1', async () => {
+        const migration = new Migration(configuration);
+        const batchOperationNumber = 1;
+        await migration.executeteBulkRequest([
+          { index : { _index: '.siren', _id : '1' } },
+          { field1 : 'value1' },
+          { index : { _index: '.siren', _id : '2' } },
+          { field1 : 'value2' },
+        ], batchOperationNumber);
+
+        sinon.assert.calledTwice(bulkSpy);
+        expect(bulkSpy.getCall(0).args[0]).to.eql({
+          refresh: true,
+          body: [
+            { index : { _index: '.siren', _id : '1' } },
+            { field1 : 'value1' },
+          ]
+        });
+        expect(bulkSpy.getCall(1).args[0]).to.eql({
+          refresh: true,
+          body: [
+            { index : { _index: '.siren', _id : '2' } },
+            { field1 : 'value2' },
+          ]
+        });
+      });
+
+      it('should send bulk request in batches - index operations, opearationsNo=2', async () => {
+        const migration = new Migration(configuration);
+        const batchOperationNumber = 2;
+        await migration.executeteBulkRequest([
+          { index : { _index: '.siren', _id : '1' } },
+          { field1 : 'value1' },
+          { index : { _index: '.siren', _id : '2' } },
+          { field1 : 'value2' },
+        ], batchOperationNumber);
+
+        sinon.assert.calledOnce(bulkSpy);
+        expect(bulkSpy.getCall(0).args[0]).to.eql({
+          refresh: true,
+          body: [
+            { index : { _index: '.siren', _id : '1' } },
+            { field1 : 'value1' },
+            { index : { _index: '.siren', _id : '2' } },
+            { field1 : 'value2' },
+            ]
+        });
+      });
+
+      it('should send bulk request in batches - mixed operations, opearationsNo=1', async () => {
+        const migration = new Migration(configuration);
+        const batchOperationNumber = 1;
+        await migration.executeteBulkRequest([
+          { index : { _index: '.siren', _id : '1' } },
+          { field1 : 'value1' },
+          { delete : { _index: '.siren', _id : '3' } },
+          { index : { _index: '.siren', _id : '2' } },
+          { field1 : 'value2' },
+        ], batchOperationNumber);
+
+        sinon.assert.calledThrice(bulkSpy);
+        expect(bulkSpy.getCall(0).args[0]).to.eql({
+          refresh: true,
+          body: [
+            { index : { _index: '.siren', _id : '1' } },
+            { field1 : 'value1' },
+          ]
+        });
+        expect(bulkSpy.getCall(1).args[0]).to.eql({
+          refresh: true,
+          body: [
+            { delete : { _index: '.siren', _id : '3' } }
+          ]
+        });
+        expect(bulkSpy.getCall(2).args[0]).to.eql({
+          refresh: true,
+          body: [
+            { index : { _index: '.siren', _id : '2' } },
+            { field1 : 'value2' },
+          ]
+        });
+      });
+    });
+
     describe('countHits', function () {
 
       beforeEach(function () {
@@ -50,10 +197,6 @@ describe('migrations', function () {
           type: type,
           body: query
         }));
-      });
-
-      afterEach(function () {
-        client.count.restore();
       });
 
     });
@@ -168,9 +311,6 @@ describe('migrations', function () {
           expect(results.length).to.be(100);
         });
 
-        afterEach(() => {
-          sinon.restore();
-        });
       });
     });
   });

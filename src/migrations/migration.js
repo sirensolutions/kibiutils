@@ -1,5 +1,7 @@
 import { defaults } from 'lodash';
 require('babel-polyfill');
+import events from 'events';
+import { getBatchSize } from './lib/bulk_operations';
 
 /**
  * The base class for migrations.
@@ -35,7 +37,9 @@ export default class Migration {
       // eslint-disable-next-line no-console
       error: console.error,
       // eslint-disable-next-line no-console
-      warning: console.warn
+      warning: console.warn,
+      // eslint-disable-next-line no-console
+      debug: console.debug
     };
   }
 
@@ -89,10 +93,14 @@ export default class Migration {
    * @param query - The query body.
    * @param options - Additional options for the search method; currently the
    *                  only supported one is `size`.
+   * @params callback - optional, if provided will be executed with results of each indyvidual scroll request
+   *         when done callback will be executed with done
    * @return The search hits.
    */
-  async scrollSearch(index, type, query, options) {
+  async scrollSearch(index, type, query, options, returnEventEmmiter = false) {
     const objects = [];
+    const emitter = returnEventEmmiter === true ? new events.EventEmitter() : undefined;
+    let emmitedObjects = 0;
 
     const opts = defaults(options || {}, {
       size: 100
@@ -109,28 +117,46 @@ export default class Migration {
       searchOptions.body = query;
     }
 
-    let response = await this._client.search(searchOptions);
+    async function executeLoop() {
+      let response = await this._client.search(searchOptions);
 
-    while (true) {
-      objects.push(...response.hits.hits);
-      if (objects.length === this.getTotalHitCount(response)) {
-        if (response._scroll_id) {
-          await this._client.clearScroll({
-            body: {
-              scroll_id: response._scroll_id
-            }
-          });
+      while (true) {
+        if (emitter) {
+          emitter.emit('data', response.hits.hits);
+          emmitedObjects += response.hits.hits.length;
+        } else {
+          objects.push(...response.hits.hits);
         }
-        break;
+        if (emitter && emmitedObjects === this.getTotalHitCount(response)) {
+          emitter.emit('end');
+          break;
+        }
+        if (objects.length === this.getTotalHitCount(response)) {
+          if (response._scroll_id) {
+            await this._client.clearScroll({
+              body: {
+                scroll_id: response._scroll_id
+              }
+            });
+          }
+          break;
+        }
+        response = await this._client.scroll({
+          body: {
+            scroll: '1m',
+            scroll_id: response._scroll_id
+          }
+        });
       }
-      response = await this._client.scroll({
-        body: {
-          scroll: '1m',
-          scroll_id: response._scroll_id
-        }
-      });
     }
 
+    if (emitter) {
+      // execute the loop in the next tick so upstream code have a chance to register handlers
+      setTimeout(() => executeLoop.call(this));
+      return emitter
+    }
+
+    await executeLoop.call(this);
     return objects;
   }
 
@@ -152,4 +178,21 @@ export default class Migration {
     const response = await this._client.count(searchOptions);
     return response.count;
   }
+
+  /**
+   * Executes an Elasticsearch bulk request to index documents in .siren index
+   * To avoid too large request body it splits the request in batches
+   * @param bulkBody - An array with bulk operations
+   * @param batchOperationNumber - Number of operations to include in a single batch, by operation we mean index, delete, update
+   */
+  async executeteBulkRequest(bulkBody, batchOperationNumber = 250) {
+    while (bulkBody.length > 0) {
+      const batchSize = getBatchSize(bulkBody, batchOperationNumber)
+      await this._client.bulk({
+        refresh: true,
+        body: bulkBody.splice(0, batchSize)
+      });
+    }
+  }
+
 }

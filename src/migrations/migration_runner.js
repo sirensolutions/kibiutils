@@ -12,11 +12,12 @@ export default class MigrationRunner {
    * @param {MigrationLogger} logger A logger instance.
    * @param {KbnServer.server} server A server instance.
    */
-  constructor(server, logger, kbnServer) {
+  constructor(server, logger, kbnServer, debug = false) {
     this._server = server;
     this._logger = logger;
     this._kbnServer = kbnServer;
     this._patchedClient = new PatchedEsClient(server.plugins.elasticsearch.getCluster('admin').getClient(), logger);
+    this._debug = debug;
   }
 
   /**
@@ -77,9 +78,20 @@ export default class MigrationRunner {
   async count(loggingEnabled = true) {
     let toUpgrade = 0;
     let warning = 'The following migrations reported outdated objects:\n';
-    for (const migration of this.getMigrations()) {
+    const migrations = this.getMigrations();
+    const migrationsNo = migrations.length;
+    for (let i = 0; i < migrations.length; i++) {
+      const migration = migrations[i];
+      if (this._debug) {
+        this._logger.debug(`Migration ${i} out of ${migrationsNo}: ${migration.constructor.description}`);
+      }
       try {
+        const start = Date.now();
         const count = await migration.count();
+        if (this._debug) {
+          const stop = Date.now();
+          this._logger.debug(`detected ${count} objects to upgrade in ${((stop - start)/1000).toFixed(2)} s`);
+        }
         toUpgrade += count;
         if (count > 0) {
           warning += `${count} objects - "${migration.constructor.description}"\n`;
@@ -103,6 +115,7 @@ export default class MigrationRunner {
    */
   async upgrade() {
     const migrations = this.getMigrations();
+    const migrationsNo = migrations.length;
     const maxIteration = 5;
     let iteration = 1;
     let upgradedTotal = 0;
@@ -114,9 +127,18 @@ export default class MigrationRunner {
     while (totalCount !== 0) {
       info = `Iteration: ${iteration}\n`;
       upgradedThisIteration = 0;
-      for (const migration of migrations) {
+      for (let i = 0; i < migrations.length; i++) {
+        const migration = migrations[i];
+        if (this._debug) {
+          this._logger.debug(`Migration ${i} out of ${migrationsNo}: ${migration.constructor.description}`);
+        }
         try {
+          const start = Date.now();
           const count = await migration.upgrade();
+          if (this._debug) {
+            const stop = Date.now();
+            this._logger.debug(`upgraded ${count} objects in ${((stop - start)/1000).toFixed(2)} s`);
+          }
           upgradedTotal += count;
           upgradedThisIteration += count;
           if (count > 0) {

@@ -24,7 +24,7 @@ export default class MigrationLogger {
   }
 
   debug(message) {
-    this._server.log(['debug', this._name], message);
+    this._server.log(['info', this._name], message);
   }
 
   info(message) {
