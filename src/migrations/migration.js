@@ -93,13 +93,13 @@ export default class Migration {
    * @param query - The query body.
    * @param options - Additional options for the search method; currently the
    *                  only supported one is `size`.
-   * @params callback - optional, if provided will be executed with results of each indyvidual scroll request
-   *         when done callback will be executed with done
-   * @return The search hits.
+   * @params returnEventEmitter - optional, if provided the method will return an event emitter instead of hits
+   *                            and will emit "data", "error", and "end" events so upstream code can reduce the memory usage
+   * @return The search hits or event emitter.
    */
-  async scrollSearch(index, type, query, options, returnEventEmmiter = false) {
+  async scrollSearch(index, type, query, options, returnEventEmitter = false) {
     const objects = [];
-    const emitter = returnEventEmmiter === true ? new events.EventEmitter() : undefined;
+    const emitter = returnEventEmitter === true ? new events.EventEmitter() : undefined;
     let emmitedObjects = 0;
 
     const opts = defaults(options || {}, {
@@ -127,26 +127,45 @@ export default class Migration {
         } else {
           objects.push(...response.hits.hits);
         }
-        if (emitter && emmitedObjects === this.getTotalHitCount(response)) {
-          emitter.emit('end');
-          break;
-        }
-        if (objects.length === this.getTotalHitCount(response)) {
+        if (
+          (emitter && emmitedObjects === this.getTotalHitCount(response)) ||
+          (!emitter && objects.length === this.getTotalHitCount(response))
+        ) {
           if (response._scroll_id) {
-            await this._client.clearScroll({
-              body: {
-                scroll_id: response._scroll_id
+            try {
+              await this._client.clearScroll({
+                body: {
+                  scroll_id: response._scroll_id
+                }
+              });
+            } catch (error) {
+              if (emitter) {
+                emitter.emit('error', error);
+              } else {
+                throw error;
               }
-            });
+            }
+          }
+          if (emitter) {
+            emitter.emit('end');
           }
           break;
         }
-        response = await this._client.scroll({
-          body: {
-            scroll: '1m',
-            scroll_id: response._scroll_id
+        try {
+          response = await this._client.scroll({
+            body: {
+              scroll: '1m',
+              scroll_id: response._scroll_id
+            }
+          });
+        } catch (error) {
+          if (emitter) {
+            emitter.emit('error', error);
+            break;
+          } else {
+            throw error;
           }
-        });
+        }
       }
     }
 

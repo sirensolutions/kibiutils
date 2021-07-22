@@ -38,7 +38,7 @@ export default class SimpleMigration extends Migration {
   async count() {
     const { index, type, query } = this._getSearchParams();
     let objectsEmitter = await this.scrollSearch(index, type, query, {}, true);
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       const trackDataEvents = [];
       let count = 0;
       objectsEmitter.on('data', async objects => {
@@ -52,9 +52,16 @@ export default class SimpleMigration extends Migration {
         objects = null;
         trackDataEvents.pop();
       });
+      objectsEmitter.on('error', error => {
+        objectsEmitter.removeAllListeners();
+        // assign null to let GC that it can be collected to reduce memory consumption
+        objectsEmitter = null;
+        reject(error);
+      });
       objectsEmitter.on('end', async () => {
         await waitUntilArrayIsEmpty(trackDataEvents);
         objectsEmitter.removeAllListeners();
+        // assign null to let GC that it can be collected to reduce memory consumption
         objectsEmitter = null;
         resolve(count)
       });
@@ -71,7 +78,7 @@ export default class SimpleMigration extends Migration {
       const { index, type, query } = this._getSearchParams();
       let objectsEmitter = await this.scrollSearch(index, type, query, this.scrollOptions, true);
 
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         let bulkBody = [];
         let upgradeCount = 0;
         const trackDataEvents = [];
@@ -89,6 +96,13 @@ export default class SimpleMigration extends Migration {
             }
           }
           trackDataEvents.pop();
+        });
+        objectsEmitter.on('error', error => {
+          objectsEmitter.removeAllListeners();
+          // assign null to let GC that it can be collected to reduce memory consumption
+          bulkBody = null;
+          objectsEmitter = null;
+          reject(error);
         });
         objectsEmitter.on('end', async () => {
           await waitUntilArrayIsEmpty(trackDataEvents);

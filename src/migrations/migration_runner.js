@@ -83,6 +83,7 @@ export default class MigrationRunner {
     for (let i = 0; i < migrations.length; i++) {
       const migration = migrations[i];
       if (this._debug) {
+        this._logger.debug('--------------------------------------------------------------------------------');
         this._logger.debug(`Migration ${i + 1} out of ${migrationsNo}: ${migration.constructor.description}`);
       }
       try {
@@ -90,7 +91,8 @@ export default class MigrationRunner {
         const count = await migration.count();
         if (this._debug) {
           const stop = Date.now();
-          this._logger.debug(`detected ${count} objects to upgrade in ${((stop - start)/1000).toFixed(2)} s`);
+          this._logger.debug(`${count} objects to upgrade detected`)
+          this._logger.debug(`${((stop - start)/1000).toFixed(2)} s execution time`);
         }
         toUpgrade += count;
         if (count > 0) {
@@ -130,6 +132,7 @@ export default class MigrationRunner {
       for (let i = 0; i < migrations.length; i++) {
         const migration = migrations[i];
         if (this._debug) {
+          this._logger.debug('--------------------------------------------------------------------------------');
           this._logger.debug(`Migration ${i + 1} out of ${migrationsNo}: ${migration.constructor.description}`);
         }
         try {
@@ -137,7 +140,8 @@ export default class MigrationRunner {
           const count = await migration.upgrade();
           if (this._debug) {
             const stop = Date.now();
-            this._logger.debug(`upgraded ${count} objects in ${((stop - start)/1000).toFixed(2)} s`);
+            this._logger.debug(`${count} upgraded objects`)
+            this._logger.debug(`${((stop - start)/1000).toFixed(2)} s execution time`);
           }
           upgradedTotal += count;
           upgradedThisIteration += count;
