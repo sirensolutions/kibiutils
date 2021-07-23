@@ -6,7 +6,6 @@ export function getBatchSize(bulkBody, batchOperationNumber) {
   let batchSize = 0;
   let metaIndex = 0;
   let row;
-  let nextRow;
   while(batchOperationNumber > 0) {
     row = bulkBody[metaIndex];
     if (!row) {
@@ -22,12 +21,11 @@ export function getBatchSize(bulkBody, batchOperationNumber) {
       metaIndex += 1;
     } else {
       // The next line should not be meta, should be a payload
-      nextRow = undefined;
-      nextRow = bulkBody[metaIndex + 1];
+      const nextRow = bulkBody[metaIndex + 1];
       if (nextRow === undefined) {
         throw new Error(`Incorrect bulk body expected additional payload row at index ${metaIndex + 1} but got nothing`);
       }
-      if (nextRow && isMeta(nextRow)) {
+      if (isMeta(nextRow)) {
         throw new Error(`Incorrect bulk body expected payload row at index ${metaIndex + 1} but got: ${JSON.stringify(nextRow)}`)
       }
       batchSize += 2;

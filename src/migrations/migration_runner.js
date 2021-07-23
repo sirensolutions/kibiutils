@@ -92,7 +92,7 @@ export default class MigrationRunner {
         if (this._debug) {
           const stop = Date.now();
           this._logger.debug(`${count} objects to upgrade detected`)
-          this._logger.debug(`${((stop - start)/1000).toFixed(2)} s execution time`);
+          this._logger.debug(`${((stop - start)/1000).toFixed(2)}s execution time`);
         }
         toUpgrade += count;
         if (count > 0) {
@@ -141,7 +141,7 @@ export default class MigrationRunner {
           if (this._debug) {
             const stop = Date.now();
             this._logger.debug(`${count} upgraded objects`)
-            this._logger.debug(`${((stop - start)/1000).toFixed(2)} s execution time`);
+            this._logger.debug(`${((stop - start)/1000).toFixed(2)}s execution time`);
           }
           upgradedTotal += count;
           upgradedThisIteration += count;

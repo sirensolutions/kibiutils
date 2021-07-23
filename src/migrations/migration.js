@@ -94,7 +94,7 @@ export default class Migration {
    * @param options - Additional options for the search method; currently the
    *                  only supported one is `size`.
    * @params returnEventEmitter - optional, if provided the method will return an event emitter instead of hits
-   *                            and will emit "data", "error", and "end" events so upstream code can reduce the memory usage
+   *                              and will emit "data", "error", and "end" events in order to reduce the memory usage
    * @return The search hits or event emitter.
    */
   async scrollSearch(index, type, query, options, returnEventEmitter = false) {
@@ -170,7 +170,7 @@ export default class Migration {
     }
 
     if (emitter) {
-      // execute the loop in the next tick so upstream code have a chance to register handlers
+      // execute the loop in the next tick so the caller have a chance to register handlers
       setTimeout(() => executeLoop.call(this));
       return emitter
     }
