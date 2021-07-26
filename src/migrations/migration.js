@@ -147,7 +147,7 @@ export default class Migration {
             }
           }
           if (emitter) {
-            emitter.emit('end');
+            emitter.emit('end', { total: emmitedObjects });
           }
           break;
         }

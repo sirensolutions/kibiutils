@@ -242,75 +242,196 @@ describe('migrations', function () {
           clearScroll = sinon.stub(client, 'clearScroll').callsFake(() => ({ succeeded: true }));
         });
 
-        it('should set default options if options have not been defined', async () => {
-          const migration = new Migration(configuration);
-          await migration.scrollSearch('empty', 'type', {});
 
-          sinon.assert.calledOnce(search);
-          sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
-        });
+        describe('Call it as no emmiter', () => {
 
-        it('should set a default size if no size has been specified', async () => {
-          const migration = new Migration(configuration);
-          await migration.scrollSearch('empty', 'type', {}, {});
+          it('should set default options if options have not been defined', async () => {
+            const migration = new Migration(configuration);
+            await migration.scrollSearch('empty', 'type', {});
 
-          sinon.assert.calledOnce(search);
-          sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
-        });
+            sinon.assert.calledOnce(search);
+            sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
+          });
 
-        it('should use the specified size', async () => {
-          const migration = new Migration(configuration);
-          await migration.scrollSearch('empty', 'type', {}, { size: 1000 });
+          it('should set a default size if no size has been specified', async () => {
+            const migration = new Migration(configuration);
+            await migration.scrollSearch('empty', 'type', {}, {});
 
-          sinon.assert.calledOnce(search);
-          sinon.assert.alwaysCalledWith(search, sinon.match({ size: 1000 }));
-        });
+            sinon.assert.calledOnce(search);
+            sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
+          });
 
-        it('should use the scroll API to fetch hits', async () => {
-          const migration = new Migration(configuration);
-          const index = 'index';
-          const type = 'type';
-          const query = {
-            query: {
-              match_all: {}
-            }
-          };
-          const options = {
-            size: 10
-          };
+          it('should use the specified size', async () => {
+            const migration = new Migration(configuration);
+            await migration.scrollSearch('empty', 'type', {}, { size: 1000 });
 
-          const results = await migration.scrollSearch(index, type, query, options);
+            sinon.assert.calledOnce(search);
+            sinon.assert.alwaysCalledWith(search, sinon.match({ size: 1000 }));
+          });
 
-          sinon.assert.calledOnce(search);
-          sinon.assert.alwaysCalledWith(search,
-            {
-              index: index,
-              type: type,
-              scroll: '1m',
-              size: options.size,
-              body: query
-            });
+          it('should use the scroll API to fetch hits', async () => {
+            const migration = new Migration(configuration);
+            const index = 'index';
+            const type = 'type';
+            const query = {
+              query: {
+                match_all: {}
+              }
+            };
+            const options = {
+              size: 10
+            };
 
-          expect(scroll.callCount).to.be(9);
-          for (let i = 0; i < scroll.callCount; i++) {
-            expect(scroll.getCall(i).args[0]).to.eql({
-              body: {
+            const results = await migration.scrollSearch(index, type, query, options);
+
+            sinon.assert.calledOnce(search);
+            sinon.assert.alwaysCalledWith(search,
+              {
+                index: index,
+                type: type,
                 scroll: '1m',
+                size: options.size,
+                body: query
+              });
+
+            expect(scroll.callCount).to.be(9);
+            for (let i = 0; i < scroll.callCount; i++) {
+              expect(scroll.getCall(i).args[0]).to.eql({
+                body: {
+                  scroll: '1m',
+                  scroll_id: `${esApi}_scroll_id`
+                }
+              });
+            }
+
+            expect(clearScroll.callCount).to.be(1);
+            expect(clearScroll.getCall(0).args[0]).to.eql({
+              body: {
                 scroll_id: `${esApi}_scroll_id`
               }
             });
-          }
 
-          expect(clearScroll.callCount).to.be(1);
-          expect(clearScroll.getCall(0).args[0]).to.eql({
-            body: {
-              scroll_id: `${esApi}_scroll_id`
-            }
+            expect(results.length).to.be(100);
           });
 
-          expect(results.length).to.be(100);
         });
 
+        describe('Call it as emmiter', () => {
+
+          it('should set default options if options have not been defined', async () => {
+            const migration = new Migration(configuration);
+            const emitter = await migration.scrollSearch('empty', 'type', {}, undefined, true);
+            return new Promise((resolve, reject) => {
+              emitter.on('end', () => {
+                sinon.assert.calledOnce(search);
+                sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
+                emitter.removeAllListeners();
+                resolve()
+              });
+              emitter.on('error', (error) => {
+                emitter.removeAllListeners();
+                reject(error)
+              });
+            });
+          });
+
+          it('should set a default size if no size has been specified', async () => {
+            const migration = new Migration(configuration);
+            const emitter = await migration.scrollSearch('empty', 'type', {}, {}, true);
+            return new Promise((resolve, reject) => {
+              emitter.on('end', () => {
+                sinon.assert.calledOnce(search);
+                sinon.assert.alwaysCalledWith(search, sinon.match({ size: 100 }));
+                emitter.removeAllListeners();
+                resolve()
+              });
+              emitter.on('error', (error) => {
+                emitter.removeAllListeners();
+                reject(error)
+              });
+            });
+          });
+
+          it('should use the specified size', async () => {
+            const migration = new Migration(configuration);
+            const emitter = await migration.scrollSearch('empty', 'type', {}, { size: 1000 }, true);
+            return new Promise((resolve, reject) => {
+              emitter.on('end', () => {
+                sinon.assert.calledOnce(search);
+                sinon.assert.alwaysCalledWith(search, sinon.match({ size: 1000 }));
+                emitter.removeAllListeners();
+                resolve()
+              });
+              emitter.on('error', (error) => {
+                emitter.removeAllListeners();
+                reject(error)
+              });
+            });
+          });
+
+          it('should use the scroll API to fetch hits', async () => {
+            const migration = new Migration(configuration);
+            const index = 'index';
+            const type = 'type';
+            const query = {
+              query: {
+                match_all: {}
+              }
+            };
+            const options = {
+              size: 10
+            };
+
+            const emitter = await migration.scrollSearch(index, type, query, options, true);
+            return new Promise((resolve, reject) => {
+              let dataEventsNo = 0;
+              let totalEmittedObjects = 0;
+
+              emitter.on('data', (data) => {
+                dataEventsNo++;
+                totalEmittedObjects += data.length;
+              });
+
+              emitter.on('end', (res) => {
+                sinon.assert.calledOnce(search);
+                sinon.assert.alwaysCalledWith(search,
+                  {
+                    index: index,
+                    type: type,
+                    scroll: '1m',
+                    size: options.size,
+                    body: query
+                  });
+
+                expect(scroll.callCount).to.be(9);
+                for (let i = 0; i < scroll.callCount; i++) {
+                  expect(scroll.getCall(i).args[0]).to.eql({
+                    body: {
+                      scroll: '1m',
+                      scroll_id: `${esApi}_scroll_id`
+                    }
+                  });
+                }
+
+                expect(clearScroll.callCount).to.be(1);
+                expect(clearScroll.getCall(0).args[0]).to.eql({
+                  body: {
+                    scroll_id: `${esApi}_scroll_id`
+                  }
+                });
+
+                expect(totalEmittedObjects).to.be(100);
+                expect(dataEventsNo).to.be(10);
+                emitter.removeAllListeners();
+                resolve()
+              });
+              emitter.on('error', (error) => {
+                emitter.removeAllListeners();
+                reject(error)
+              });
+            });
+          });
+        });
       });
     });
   });
