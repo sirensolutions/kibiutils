@@ -1,15 +1,15 @@
 {
   "name": "kibiutils",
-  "version": "10.19.0",
-  "description": "Small utility lib for the Kibi project",
+  "version": "11.0.0",
+  "description": "Small utility lib for the Investigate project",
   "main": "./lib/kibiutils.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-core/register,js:babel-polyfill src/__tests__/*.js src/**/__tests__/*.js",
+    "test": "mocha --require @babel/register --require @babel/preset-env src/__tests__/*.js src/**/__tests__/*.js",
     "lint": "eslint src/*.js",
     "lintfix": "eslint --fix src/*.js",
     "validate": "npm ls",
-    "babel": "babel --presets es2015,es2017 -d lib/ src/",
-    "prepublish": "npm run babel"
+    "babel": "babel -d lib/ src/",
+    "prepare": "npm run babel"
   },
   "pre-commit": [
     "lint",
@@ -31,45 +31,62 @@
   "babel": {
     "plugins": [
       "add-module-exports",
-      "transform-async-generator-functions",
-      "transform-class-properties",
-      "transform-object-rest-spread"
+      "@babel/plugin-proposal-async-generator-functions",
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-object-rest-spread"
     ],
     "presets": [
-      "es2015",
-      "es2017"
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "browsers": [
+              "last 2 versions",
+              "> 5%",
+              "Safari 7",
+              "not IE > 9",
+              "not IE_MOB > 9"
+            ]
+          },
+          "useBuiltIns": "usage",
+          "corejs": {
+            "version": "3.18",
+            "proposals": true
+          }
+        }
+      ]
     ]
   },
   "homepage": "https://github.com/sirensolutions/kibiutils",
   "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-core": "6.21.0",
-    "babel-eslint": "7.2.3",
-    "babel-jest": "20.0.0",
-    "babel-loader": "6.2.10",
-    "babel-plugin-add-module-exports": "0.2.1",
-    "babel-plugin-transform-async-generator-functions": "6.24.1",
-    "babel-plugin-transform-class-properties": "6.24.1",
-    "babel-plugin-transform-object-rest-spread": "6.23.0",
-    "babel-polyfill": "6.20.0",
-    "babel-preset-es2015": "6.24.1",
-    "babel-preset-es2017": "6.24.1",
-    "babel-register": "6.18.0",
+    "@babel/cli": "7.15.7",
+    "@babel/core": "7.15.5",
+    "@babel/plugin-proposal-async-generator-functions": "7.15.4",
+    "@babel/plugin-proposal-class-properties": "7.14.5",
+    "@babel/plugin-proposal-object-rest-spread": "7.15.6",
+    "@babel/preset-env": "7.15.6",
+    "@babel/register": "7.15.3",
+    "@babel/eslint-plugin": "7.14.5",
+    "babel-jest": "27.2.2",
+    "babel-loader": "8.2.2",
+    "babel-plugin-add-module-exports": "1.0.4",
     "bluebird": "2.9.34",
-    "elasticsearch": "^15.1.1",
+    "elasticsearch": "16.5.0",
     "eslint": "7.12.1",
     "eslint-plugin-babel": "4.1.1",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-jest": "24.1.0",
-    "eslint-plugin-mocha": "8.0.0",
+    "eslint-plugin-mocha": "9.0.0",
     "eslint-plugin-prefer-object-spread": "1.2.1",
-    "eslint-plugin-react": "7.21.5",
-    "eslint-plugin-siren": "sirensolutions/eslint-plugin-siren#2.0.0",
-    "expect.js": "~0.3.1",
-    "lodash": "^4.17.19",
-    "mocha": "^5.2.0",
+    "eslint-plugin-react": "7.26.0",
+    "eslint-plugin-siren": "sirensolutions/eslint-plugin-siren#2.3.2",
+    "expect.js": "0.3.1",
+    "lodash": "4.17.21",
+    "mocha": "9.1.2",
     "precommit-hook": "3.0.0",
-    "sinon": "^5.0.7"
+    "sinon": "5.0.7"
   },
-  "dependencies": {}
+  "dependencies": {
+    "core-js": "3.18.1"
+  }
 }

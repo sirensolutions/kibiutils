@@ -1,5 +1,6 @@
 import { defaults } from 'lodash';
-require('babel-polyfill');
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import events from 'events';
 import { getBatchSize } from './lib/bulk_operations';
 
