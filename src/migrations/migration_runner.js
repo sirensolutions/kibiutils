@@ -1,5 +1,6 @@
 import { each } from 'lodash';
-require('babel-polyfill');
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
 import PatchedEsClient from './patched_es_client';
 
 /**
