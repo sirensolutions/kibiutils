@@ -98,6 +98,9 @@ export default class Migration {
    * @return The search hits or event emitter.
    */
   async scrollSearch(index, type, query, options, returnEventEmitter = false) {
+    if (!index) {
+      throw new Error('Calling scroll search API without specifying an index is not allowed in migrations');
+    }
     const objects = [];
     const emitter = returnEventEmitter === true ? new events.EventEmitter() : undefined;
     let emmitedObjects = 0;
