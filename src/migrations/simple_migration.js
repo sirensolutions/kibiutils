@@ -12,7 +12,7 @@ import { waitUntilArrayIsEmpty } from './lib/bulk_operations';
 export default class SimpleMigration extends Migration {
   constructor(configuration) {
     super(configuration);
-    this._defaultIndex = configuration.config.get('kibana.index');
+    this.defaultIndex = configuration.config.get('kibana.index');
   }
 
   /**
@@ -175,7 +175,7 @@ export default class SimpleMigration extends Migration {
       if (this._searchQuery) {
         throw new Error('You may only define either _savedObjectType OR _searchQuery, Not Both!');
       }
-      params.index = this._index || this._defaultIndex;
+      params.index = this._index || this.defaultIndex;
       params.type = this._type || DEFAULT_TYPE;
       params.query = {
         query: {
@@ -185,7 +185,7 @@ export default class SimpleMigration extends Migration {
         }
       };
     } else if (this._searchQuery) {
-      params.index = this._index || this._defaultIndex;
+      params.index = this._index || this.defaultIndex;
       params.type = this._type || DEFAULT_TYPE;
       params.query = this._searchQuery;
     } else {
